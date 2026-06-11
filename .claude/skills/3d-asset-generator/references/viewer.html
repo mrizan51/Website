@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>meshkit GLB viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14171c; color: #c8cdd6;
+               font: 13px/1.4 system-ui, sans-serif; overflow: hidden; }
+  #hint { position: fixed; inset: 0; display: flex; align-items: center;
+          justify-content: center; text-align: center; pointer-events: none;
+          color: #6b7280; font-size: 15px; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 6px 12px;
+         background: rgba(10, 12, 16, .7); display: none; }
+  body.drag { outline: 3px dashed #4f8cff; outline-offset: -3px; }
+</style>
+</head>
+<body>
+<div id="hint">Drop a .glb file here<br/><small>or open with
+  ?file=asset.glb (serve the folder with: python3 -m http.server)</small></div>
+<div id="bar"></div>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x14171c);
+scene.add(new THREE.HemisphereLight(0xdfe8f5, 0x3a3f4a, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 2.0);
+key.position.set(3, 5, 2);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xbfd0ff, 0.6);
+fill.position.set(-4, 2, -3);
+scene.add(fill);
+scene.add(new THREE.GridHelper(10, 20, 0x4a5160, 0x262b34));
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 200);
+camera.position.set(2.5, 1.8, 2.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+const loader = new GLTFLoader();
+let model = null;
+
+function frame(object) {
+  const sphereBounds = new THREE.Box3().setFromObject(object)
+    .getBoundingSphere(new THREE.Sphere());
+  const distance = sphereBounds.radius / Math.tan((camera.fov / 2) * Math.PI / 180);
+  const dir = new THREE.Vector3(1, 0.6, 1).normalize();
+  camera.position.copy(sphereBounds.center).addScaledVector(dir, distance * 1.4);
+  camera.near = sphereBounds.radius / 100;
+  camera.far = distance * 20;
+  camera.updateProjectionMatrix();
+  controls.target.copy(sphereBounds.center);
+}
+
+function show(gltf, label) {
+  if (model) scene.remove(model);
+  model = gltf.scene;
+  scene.add(model);
+  frame(model);
+  let verts = 0, tris = 0;
+  model.traverse(o => {
+    if (o.isMesh) {
+      verts += o.geometry.attributes.position.count;
+      tris += (o.geometry.index ? o.geometry.index.count
+                                : o.geometry.attributes.position.count) / 3;
+    }
+  });
+  document.getElementById('hint').style.display = 'none';
+  const bar = document.getElementById('bar');
+  bar.style.display = 'block';
+  bar.textContent = `${label} — ${verts} vertices, ${tris} triangles. ` +
+                    `Drag to orbit, scroll to zoom, right-drag to pan.`;
+}
+
+const param = new URLSearchParams(location.search).get('file');
+if (param) loader.load(param, g => show(g, param),
+                       undefined, e => console.error(e));
+
+addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drag'); });
+addEventListener('dragleave', () => document.body.classList.remove('drag'));
+addEventListener('drop', async e => {
+  e.preventDefault();
+  document.body.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  loader.parse(await file.arrayBuffer(), '', g => show(g, file.name),
+               err => console.error(err));
+});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>
