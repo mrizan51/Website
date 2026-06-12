@@ -83,6 +83,22 @@ const productSections = catalogue.categories
   })
   .join("\n\n      ");
 
+const telHref = (p) => "tel:" + String(p).replace(/[^+\d]/g, "");
+const phones = site.phones || [];
+const phoneLinks = phones.map((p) => `<a href="${telHref(p)}">${esc(p)}</a>`);
+const phoneBlock = phones.length
+  ? `<div class="contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4h3.5l1.7 4.3-2.3 1.6a12.5 12.5 0 0 0 5.7 5.7l1.6-2.3L20 15v3.5a1.5 1.5 0 0 1-1.7 1.5C10.6 19.3 4.7 13.4 4 5.7A1.5 1.5 0 0 1 5.5 4z"/></svg>
+            <div>
+              <strong>Phone</strong>
+              <p>${phoneLinks.join("<br>")}</p>
+            </div>
+          </div>`
+  : "";
+const phoneFooterItems = phones
+  .map((p) => `<li><a href="${telHref(p)}">${esc(p)}</a></li>`)
+  .join("\n          ");
+
 const marketChips = site.markets.map((m) => `<span class="chip">${esc(m)}</span>`).join("\n            ");
 const brandChips = site.brands
   .map((b) => `<span class="brand-chip"><span>●</span> ${esc(b)}</span>`)
@@ -101,13 +117,14 @@ const jsonld = `<script type="application/ld+json">${JSON.stringify({
   logo: site.domain + "/assets/img/logo-full.svg",
   foundingDate: String(site.founded),
   email: site.email,
+  ...(phones.length ? { telephone: phones[0].replace(/[^+\d]/g, "") } : {}),
   address: {
     "@type": "PostalAddress",
-    streetAddress: "XI/323A, XI/324, Aroor, Chandiroor, NH-66",
-    addressLocality: "Cherthala, Alappuzha",
-    addressRegion: "Kerala",
-    postalCode: "688537",
-    addressCountry: "IN",
+    streetAddress: site.address.street,
+    addressLocality: site.address.locality,
+    addressRegion: site.address.region,
+    postalCode: site.address.postalCode,
+    addressCountry: site.address.country,
   },
 })}</script>`;
 
@@ -119,6 +136,8 @@ const GENERATED = {
   CERT_CHIPS: certChips,
   ADDRESS_INLINE: addressInline,
   ADDRESS_BLOCK: addressInline,
+  PHONE_BLOCK: phoneBlock,
+  PHONE_FOOTER_ITEMS: phoneFooterItems,
   MAPS_URL: mapsUrl,
   PACKING_NOTE: esc(catalogue.packingNote),
   JSONLD: jsonld,

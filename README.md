@@ -22,9 +22,9 @@ maintain or patch.
 
 Almost everything an owner needs to change lives in two JSON files:
 
-- **`src/data/site.json`** — contact email, phone, address, brands, markets.
-  ⚠️ `email` is currently set to `info@premierexport.in` — **confirm or change
-  this before launch**; the quote form and footer use it.
+- **`src/data/site.json`** — contact email, phones, address, brands, markets.
+  Current inquiry email: `premier.pei@gmail.com` (owner-confirmed). The quote
+  form, footer and JSON-LD all read from this file.
 - **`src/data/products.json`** — the product catalogue. Add a product by adding
   one object (`name`, `sci`, `forms`, optional `note`) to a category's `items`.
 
@@ -73,8 +73,10 @@ endpoint — markup is ready in `src/pages/contact.html`.
 
 ## Pre-launch checklist
 
-- [ ] Confirm inquiry **email** (`src/data/site.json`) — currently assumed `info@premierexport.in`
-- [ ] Add **phone / WhatsApp** numbers to `site.json` (hidden until provided)
+- [x] Inquiry **email** confirmed: `premier.pei@gmail.com`
+- [x] **Phone numbers** confirmed: +91 8138 914941, +91 98463 14941
+- [x] **Office address** confirmed: AP X/453, NH66 Highway, Chandiroor P.O., Aroor, Alappuzha, Kerala - 688 537
+- [ ] Add **WhatsApp** number if used for trade enquiries (`site.json`)
 - [ ] Confirm **founding year** (public registry says 30-Apr-1982)
 - [ ] Confirm certifications shown on `/quality.html` (EU approval no., HACCP, MPEDA, FSSAI)
 - [ ] Review product **forms** (HOSO/HLSO/PD/etc.) per species

@@ -5,18 +5,24 @@
   "tagline": "Premium frozen seafood from India's west coast",
   "description": "Premier Exports International is an EU-approved, HACCP-certified processor and exporter of frozen shrimp, cephalopods and fish, based in Aroor near Kochi, Kerala, India. Serving buyers in Japan, Europe, the USA, the Gulf and China since 1982.",
   "domain": "https://premierexport.in",
-  "email": "info@premierexport.in",
-  "phone": "",
+  "email": "premier.pei@gmail.com",
+  "phones": ["+91 8138 914941", "+91 98463 14941"],
   "whatsapp": "",
   "founded": 1982,
   "address": {
     "lines": [
-      "XI/323A, XI/324, Premier Exports",
-      "Aroor, Chandiroor, NH-66",
-      "Cherthala, Alappuzha",
-      "Kerala 688537, India"
+      "Premier Exports International",
+      "AP X/453, NH66 Highway",
+      "Chandiroor P.O., Aroor",
+      "Alappuzha, Kerala - 688 537",
+      "India"
     ],
-    "mapsQuery": "Premier Exports International, Aroor, Chandiroor, Alappuzha, Kerala 688537"
+    "street": "AP X/453, NH66 Highway, Chandiroor P.O., Aroor",
+    "locality": "Alappuzha",
+    "region": "Kerala",
+    "postalCode": "688537",
+    "country": "IN",
+    "mapsQuery": "Premier Exports International, AP X/453, NH66, Chandiroor, Aroor, Alappuzha, Kerala 688537"
   },
   "brands": ["Prime", "Premier", "Primus"],
   "markets": ["Japan", "European Union", "United States", "Gulf States", "China"],

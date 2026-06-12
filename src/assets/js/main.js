@@ -65,7 +65,7 @@
         "— Sent from premierexport.in"
       ].join("\n");
       var mailto =
-        "mailto:" + (window.PEI_CONTACT_EMAIL || "info@premierexport.in") +
+        "mailto:" + (window.PEI_CONTACT_EMAIL || "premier.pei@gmail.com") +
         "?subject=" + encodeURIComponent(subject) +
         "&body=" + encodeURIComponent(body);
       window.location.href = mailto;

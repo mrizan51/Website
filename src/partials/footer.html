@@ -29,6 +29,7 @@
         <h4>Head Office</h4>
         <ul>
           <li>{{ADDRESS_INLINE}}</li>
+          {{PHONE_FOOTER_ITEMS}}
           <li><a href="mailto:{{site.email}}">{{site.email}}</a></li>
         </ul>
       </div>
@@ -39,4 +40,5 @@
     </div>
   </div>
 </footer>
+<script>window.PEI_CONTACT_EMAIL = "{{site.email}}";</script>
 <script src="/assets/js/main.js" defer></script>
