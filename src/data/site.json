@@ -36,13 +36,31 @@
   "brands": ["Prime", "Premier", "Primus"],
   "markets": ["Japan", "Europe", "Middle East"],
   "customers": ["Importers", "Wholesalers", "Distributors", "Retailers", "Restaurants"],
-  "certifications": ["EU Approved", "Japan Approved", "BRCGS (A Grade)", "HACCP Certified", "U.S. FDA Registered", "MPEDA Registered"],
+  "certifications": ["BRCGS (A Grade)", "EU Approved", "Japan Approved", "HACCP Certified", "U.S. FDA Registered", "MPEDA Registered", "FSSAI Licensed"],
   "registrations": [
     {
-      "name": "EIA Establishment Approval (HACCP)",
+      "name": "BRCGS Global Standard for Food Safety (Grade A)",
+      "number": "21454-BRF-001",
+      "body": "Alcumus ISOQAR — Issue 9 (Aug 2022); BRC Site Code 10006104",
+      "valid": "24 Aug 2026"
+    },
+    {
+      "name": "EU / EIA Establishment Approval",
       "number": "644",
-      "body": "Export Inspection Agency, Kochi — Ministry of Commerce & Industry, Govt. of India",
+      "body": "Export Inspection Agency, Kochi — competent authority for EU & global export",
+      "valid": "29 Nov 2028"
+    },
+    {
+      "name": "HACCP Compliance Certificate",
+      "number": "Est. 644",
+      "body": "Export Inspection Agency, Kochi — Govt. of India",
       "valid": "10 Nov 2026"
+    },
+    {
+      "name": "U.S. FDA Food Facility Registration",
+      "number": "12928104236",
+      "body": "U.S. Food and Drug Administration",
+      "valid": "31 Dec 2026"
     },
     {
       "name": "MPEDA Exporter Registration",
@@ -57,10 +75,10 @@
       "valid": "31 Mar 2030"
     },
     {
-      "name": "U.S. FDA Food Facility Registration",
-      "number": "12928104236",
-      "body": "U.S. Food and Drug Administration",
-      "valid": "31 Dec 2026"
+      "name": "FSSAI Central License",
+      "number": "10012041000160",
+      "body": "Food Safety and Standards Authority of India",
+      "valid": "31 Mar 2030"
     },
     {
       "name": "Importer-Exporter Code (IEC)",

@@ -81,13 +81,17 @@ endpoint — markup is ready in `src/pages/contact.html`.
 - [x] **Founders** (1982): K. M. Abdulla, A. Musthafa · **Management**: Salim K. A., Mohammed Rizan Salim, Nissam Musthafa
 - [x] **Certifications**: EU, Japan, HACCP, BRCGS (A Grade) — confirmed by owner
 - [x] **Markets**: Japan, Europe, Middle East — confirmed by owner
-- [x] **Registration numbers** documented from certificates: EIA approval 644
-  (HACCP, valid 10 Nov 2026), MPEDA KL1/MT/033/04 (valid 19 Dec 2028), MPEDA
-  RCMC (valid 31 Mar 2030), U.S. FDA 12928104236 (cycle to 31 Dec 2026), IEC
-  1088007121 — shown on `/quality.html` (renewal dates → update `site.json`
-  → `registrations` when certificates renew)
-- [ ] **BRCGS certificate number** not yet provided — add to the registrations
-  table when available
+- [x] **Registration numbers** documented from certificates and shown on
+  `/quality.html` (update `site.json` → `registrations` on renewal):
+  BRCGS 21454-BRF-001 (Grade A, exp 24 Aug 2026), EIA est. approval 644
+  (valid 29 Nov 2028), EIA HACCP compliance (valid 10 Nov 2026), U.S. FDA
+  12928104236 (to 31 Dec 2026), MPEDA KL1/MT/033/04 (19 Dec 2028), MPEDA
+  RCMC (31 Mar 2030), FSSAI 10012041000160 (31 Mar 2030), IEC 1088007121
+- [ ] **Pincode discrepancy**: you gave 688537 (matches DGFT IEC & RCMC); EIA,
+  BRCGS, FSSAI & FDA certificates show 688547. Confirm which is current — set in
+  `site.json` → `address`
+- [ ] **BRCGS expiry 24 Aug 2026** — re-audit window 15 Jun–13 Jul 2026; refresh
+  the number/date after recertification
 - [ ] Add **WhatsApp** number if used for trade enquiries (`site.json` → `whatsapp`)
 - [ ] **Verify one scientific name**: "Kazhanthan" mapped to *Metapenaeus monoceros* (Speckled Shrimp) — confirm or correct in `products.json`
 - [ ] Confirm partner **titles** (currently "Partner" for all three — adjust in `site.json` if specific roles preferred)
