@@ -1,7 +1,9 @@
 # Premier Exports International — premierexport.in
 
-Corporate website for **Premier Exports International**, EU-approved exporters
-of frozen seafood from Aroor, Kerala, India — established 1982.
+Corporate website for **Premier Exports International** — EU- and Japan-approved,
+HACCP and BRCGS (A Grade) certified exporters of frozen seafood from Chandiroor,
+Kerala, India. Founded in 1982 by K. M. Abdulla and A. Musthafa; run today by the
+second generation.
 
 Built as a dependency-free static site: hand-crafted HTML/CSS/JS assembled by
 a 150-line Node build script. No frameworks, no npm packages, nothing to
@@ -12,9 +14,9 @@ maintain or patch.
 | Page | Purpose |
 |---|---|
 | `/` | Home — hero, highlights, product categories, brands, markets |
-| `/about.html` | Company story since 1982, values, brands, milestones |
-| `/products.html` | Full catalogue: 38 items in 4 categories with scientific names |
-| `/markets.html` | Export regions (Japan, EU, USA, Gulf, China) + logistics |
+| `/about.html` | Founder story, founders & leadership, values, brands, milestones |
+| `/products.html` | Full catalogue: 40 items in 4 categories with scientific & local names |
+| `/markets.html` | Export regions (Japan, Europe, Middle East) + who we serve + logistics |
 | `/quality.html` | Certifications, HACCP process chain, traceability, testing |
 | `/contact.html` | Head office details + request-a-quote form |
 
@@ -76,9 +78,13 @@ endpoint — markup is ready in `src/pages/contact.html`.
 - [x] Inquiry **email** confirmed: `premier.pei@gmail.com`
 - [x] **Phone numbers** confirmed: +91 8138 914941, +91 98463 14941
 - [x] **Office address** confirmed: AP X/453, NH66 Highway, Chandiroor P.O., Aroor, Alappuzha, Kerala - 688 537
-- [ ] Add **WhatsApp** number if used for trade enquiries (`site.json`)
-- [ ] Confirm **founding year** (public registry says 30-Apr-1982)
-- [ ] Confirm certifications shown on `/quality.html` (EU approval no., HACCP, MPEDA, FSSAI)
+- [x] **Founders** (1982): K. M. Abdulla, A. Musthafa · **Management**: Salim K. A., Mohammed Rizan Salim, Nissam Musthafa
+- [x] **Certifications**: EU, Japan, HACCP, BRCGS (A Grade) — confirmed by owner
+- [x] **Markets**: Japan, Europe, Middle East — confirmed by owner
+- [ ] Add **EU / BRCGS approval numbers** to `/quality.html` if you want them shown publicly
+- [ ] Add **WhatsApp** number if used for trade enquiries (`site.json` → `whatsapp`)
+- [ ] **Verify one scientific name**: "Kazhanthan" mapped to *Metapenaeus monoceros* (Speckled Shrimp) — confirm or correct in `products.json`
+- [ ] Confirm partner **titles** (currently "Partner" for all three — adjust in `site.json` if specific roles preferred)
 - [ ] Review product **forms** (HOSO/HLSO/PD/etc.) per species
 - [ ] Replace recreated SVG logo with original vector artwork if available
 - [ ] Add real facility/product photography when available

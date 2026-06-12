@@ -351,6 +351,10 @@ h3 { font-size: 1.22rem; }
   font-size: 0.95rem; padding: 0.45rem 1.05rem;
 }
 
+/* Light chip row (on white) */
+.chip-row { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.chip-row .chip { font-size: 0.95rem; padding: 0.45rem 1.05rem; }
+
 /* Brand chips */
 .brand-chips { display: flex; flex-wrap: wrap; gap: 0.8rem; }
 .brand-chip {
@@ -499,6 +503,41 @@ h3 { font-size: 1.22rem; }
   font-size: 0.87rem; color: rgba(255, 255, 255, 0.55);
 }
 
+.product-card .local {
+  font-size: 0.84rem;
+  color: var(--brand-deep);
+  font-weight: 600;
+  margin-top: -0.1rem;
+}
+
+/* People (founders / leadership) */
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+.people-grid.two { grid-template-columns: repeat(2, 1fr); max-width: 640px; }
+.person-card {
+  display: flex; align-items: center; gap: 1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.3rem;
+  box-shadow: var(--shadow-sm);
+}
+.person-avatar {
+  flex: none;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(150deg, var(--brand), var(--brand-deep));
+  color: #fff;
+  font-family: var(--font-head);
+  font-weight: 700; font-size: 1.15rem; letter-spacing: 0.04em;
+}
+.person-card h3 { font-size: 1.05rem; margin: 0; }
+.person-role { font-size: 0.9rem; color: var(--muted); margin: 0.1rem 0 0; }
+
 /* ---------- Reveal animations ---------- */
 .reveal { opacity: 0; transform: translateY(16px); }
 .reveal.in { opacity: 1; transform: none; transition: opacity 0.65s ease, transform 0.65s ease; }
@@ -517,6 +556,7 @@ h3 { font-size: 1.22rem; }
   .grid-3 { grid-template-columns: 1fr; }
   .grid-2 { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
+  .people-grid, .people-grid.two { grid-template-columns: 1fr; }
   .contact-layout { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .stat-strip { grid-template-columns: repeat(2, 1fr); }

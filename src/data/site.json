@@ -3,12 +3,21 @@
   "shortName": "PEI",
   "legalName": "Premier Exports International",
   "tagline": "Premium frozen seafood from India's west coast",
-  "description": "Premier Exports International is an EU-approved, HACCP-certified processor and exporter of frozen shrimp, cephalopods and fish, based in Aroor near Kochi, Kerala, India. Serving buyers in Japan, Europe, the USA, the Gulf and China since 1982.",
+  "description": "Premier Exports International is an EU- and Japan-approved, HACCP and BRCGS (A Grade) certified seafood processor and exporter based in Chandiroor, Kerala, India. Founded in 1982 and run today by the second generation, we export premium frozen shrimp, cuttlefish, squid, tuna and other marine products to Japan, Europe and the Middle East.",
   "domain": "https://premierexport.in",
   "email": "premier.pei@gmail.com",
   "phones": ["+91 8138 914941", "+91 98463 14941"],
   "whatsapp": "",
   "founded": 1982,
+  "founders": [
+    { "name": "K. M. Abdulla", "role": "Co-Founder (1982)" },
+    { "name": "A. Musthafa", "role": "Co-Founder (1982)" }
+  ],
+  "leadership": [
+    { "name": "Salim K. A.", "role": "Partner" },
+    { "name": "Mohammed Rizan Salim", "role": "Partner" },
+    { "name": "Nissam Musthafa", "role": "Partner" }
+  ],
   "address": {
     "lines": [
       "Premier Exports International",
@@ -25,6 +34,7 @@
     "mapsQuery": "Premier Exports International, AP X/453, NH66, Chandiroor, Aroor, Alappuzha, Kerala 688537"
   },
   "brands": ["Prime", "Premier", "Primus"],
-  "markets": ["Japan", "European Union", "United States", "Gulf States", "China"],
-  "certifications": ["EU-Approved Facility", "HACCP Certified", "MPEDA Registered", "FSSAI Licensed"]
+  "markets": ["Japan", "Europe", "Middle East"],
+  "customers": ["Importers", "Wholesalers", "Distributors", "Retailers", "Restaurants"],
+  "certifications": ["EU Approved", "Japan Approved", "HACCP Certified", "BRCGS (A Grade)"]
 }

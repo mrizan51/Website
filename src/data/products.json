@@ -7,12 +7,14 @@
       "icon": "shrimp",
       "intro": "Farmed and wild-caught shrimp — from coastal waters to deep-sea grounds — processed head-on, headless or peeled to your specification.",
       "items": [
-        { "name": "White Vannamei Shrimp", "sci": "Litopenaeus vannamei", "forms": ["HOSO", "HLSO", "PD", "PUD", "PDTO"], "note": "Farmed" },
-        { "name": "Tiger Prawn", "sci": "Penaeus monodon", "forms": ["HOSO", "HLSO", "PD", "PUD"], "note": "Farmed & wild-caught" },
+        { "name": "White Vannamei Shrimp", "sci": "Litopenaeus vannamei", "local": "Vannamei", "forms": ["HOSO", "HLSO", "PD", "PUD", "PDTO"], "note": "Farmed" },
+        { "name": "Black Tiger Prawn", "sci": "Penaeus monodon", "local": "Kara", "forms": ["HOSO", "HLSO", "PD", "PUD"], "note": "Farmed & wild-caught" },
+        { "name": "Indian White Shrimp", "sci": "Fenneropenaeus indicus", "local": "Naran", "forms": ["HOSO", "HLSO", "PD", "PUD"], "note": "Wild-caught" },
+        { "name": "Flower Tail Shrimp", "sci": "Metapenaeus dobsoni", "local": "Poovalan", "forms": ["PD", "PUD"], "note": "Wild-caught" },
+        { "name": "Kiddi Shrimp", "sci": "Parapenaeopsis stylifera", "local": "Karikadi", "forms": ["PD", "PUD"], "note": "Wild-caught" },
+        { "name": "Speckled Shrimp", "sci": "Metapenaeus monoceros", "local": "Kazhanthan", "forms": ["HLSO", "PD", "PUD"], "note": "Wild-caught" },
         { "name": "Flower Shrimp", "sci": "Penaeus semisulcatus", "forms": ["HLSO", "PD", "PUD"], "note": "Wild-caught" },
-        { "name": "White Shrimp", "sci": "Penaeus indicus", "forms": ["HOSO", "HLSO", "PD", "PUD"], "note": "Wild-caught" },
         { "name": "Bamboo Shrimp", "sci": "Penaeus japonicus", "forms": ["HOSO", "HLSO", "PD"], "note": "Wild-caught" },
-        { "name": "Brown Shrimp", "sci": "Metapenaeus affinis", "forms": ["HLSO", "PD", "PUD"], "note": "Wild-caught" },
         { "name": "Pink Shrimp", "sci": "Heterocarpus woodmasoni", "forms": ["HLSO", "PD", "PUD"], "note": "Deep-sea, wild-caught" },
         { "name": "Red Shrimp", "sci": "Aristeus alcocki", "forms": ["HLSO", "PD", "PUD"], "note": "Deep-sea, wild-caught" }
       ]

@@ -62,9 +62,11 @@ const productSections = catalogue.categories
       .map((item) => {
         const chips = (item.forms || []).map((f) => `<span class="chip">${esc(f)}</span>`).join("");
         const note = item.note ? `<p class="note">${esc(item.note)}</p>` : "";
+        const local = item.local ? `<p class="local">Local name — ${esc(item.local)}</p>` : "";
         return `<article class="product-card reveal">
             <h3>${esc(item.name)}</h3>
             <p class="sci">${esc(item.sci)}</p>
+            ${local}
             <div class="forms">${chips}</div>
             ${note}
           </article>`;
@@ -100,6 +102,28 @@ const phoneFooterItems = phones
   .join("\n          ");
 
 const marketChips = site.markets.map((m) => `<span class="chip">${esc(m)}</span>`).join("\n            ");
+const customerChips = (site.customers || [])
+  .map((c) => `<span class="chip">${esc(c)}</span>`)
+  .join("\n            ");
+
+const initials = (name) =>
+  name
+    .split(/\s+/)
+    .filter((w) => /[A-Za-z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+const personCard = (p) => `<div class="person-card reveal">
+          <div class="person-avatar" aria-hidden="true">${esc(initials(p.name))}</div>
+          <div>
+            <h3>${esc(p.name)}</h3>
+            <p class="person-role">${esc(p.role)}</p>
+          </div>
+        </div>`;
+const foundersCards = (site.founders || []).map(personCard).join("\n        ");
+const leadershipCards = (site.leadership || []).map(personCard).join("\n        ");
+
 const brandChips = site.brands
   .map((b) => `<span class="brand-chip"><span>●</span> ${esc(b)}</span>`)
   .join("\n          ");
@@ -132,6 +156,9 @@ const GENERATED = {
   CATEGORY_CARDS: categoryCards,
   PRODUCT_SECTIONS: productSections,
   MARKET_CHIPS: marketChips,
+  CUSTOMER_CHIPS: customerChips,
+  FOUNDERS_CARDS: foundersCards,
+  LEADERSHIP_CARDS: leadershipCards,
   BRAND_CHIPS: brandChips,
   CERT_CHIPS: certChips,
   ADDRESS_INLINE: addressInline,
