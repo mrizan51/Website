@@ -1,0 +1,102 @@
+<!--meta {"title":"Contact Us — Premier Exports International","description":"Request a quote or get in touch with Premier Exports International, Aroor, Alappuzha, Kerala, India. Tell us the species and specifications you need and we'll respond with availability and pricing.","path":"/contact.html","nav":"contact"}-->
+<!doctype html>
+<html lang="en">
+<head>
+{{> head}}
+</head>
+<body>
+{{> header}}
+<main id="main">
+
+  <section class="page-head">
+    <svg class="head-art" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      <g stroke="#7fd0ef" stroke-width="1.2">
+        <circle cx="200" cy="200" r="150"/>
+        <ellipse cx="200" cy="200" rx="55" ry="150"/>
+        <ellipse cx="200" cy="200" rx="110" ry="150"/>
+        <path d="M 70 162 Q 200 140 330 162"/>
+        <path d="M 50 200 L 350 200"/>
+        <path d="M 70 238 Q 200 260 330 238"/>
+      </g>
+    </svg>
+    <div class="container">
+      <span class="kicker">Contact</span>
+      <h1>Let's talk seafood.</h1>
+      <p>Whether you need a current offer, a specification sheet or a long-term supply programme — we typically respond within one business day.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="contact-layout">
+        <aside class="contact-card reveal">
+          <h2>Head Office</h2>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+            <div>
+              <strong>Address</strong>
+              <p>{{ADDRESS_BLOCK}}</p>
+              <p style="margin-top: 0.4rem;"><a href="{{MAPS_URL}}" target="_blank" rel="noopener">View on Google Maps ↗</a></p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l8 6 8-6"/><rect x="4" y="5" width="16" height="14" rx="2"/></svg>
+            <div>
+              <strong>Email</strong>
+              <p><a href="mailto:{{site.email}}">{{site.email}}</a></p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+            <div>
+              <strong>Office Hours</strong>
+              <p>Monday – Saturday<br>9:00 – 18:00 IST</p>
+            </div>
+          </div>
+        </aside>
+
+        <div class="form-card reveal" id="quote">
+          <h2 style="font-size: 1.45rem; margin-bottom: 0.4rem;">Request a quote</h2>
+          <p style="font-size: 0.97rem; margin-bottom: 1.4rem;">Tell us what you're buying and we'll come back with availability, grading and pricing.</p>
+          <form id="quote-form" novalidate>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="qf-name">Your name *</label>
+                <input id="qf-name" name="name" type="text" autocomplete="name" required>
+              </div>
+              <div class="form-field">
+                <label for="qf-company">Company *</label>
+                <input id="qf-company" name="company" type="text" autocomplete="organization" required>
+              </div>
+              <div class="form-field">
+                <label for="qf-email">Email *</label>
+                <input id="qf-email" name="email" type="email" autocomplete="email" required>
+              </div>
+              <div class="form-field">
+                <label for="qf-country">Country / Market *</label>
+                <input id="qf-country" name="country" type="text" autocomplete="country-name" required>
+              </div>
+              <div class="form-field full">
+                <label for="qf-products">Products of interest *</label>
+                <input id="qf-products" name="products" type="text" placeholder="e.g. Vannamei PD 16/20, Cuttlefish whole cleaned, Black Pomfret 300–500 g" required>
+              </div>
+              <div class="form-field full">
+                <label for="qf-message">Message</label>
+                <textarea id="qf-message" name="message" placeholder="Volumes, destination port, packing requirements, target dates…"></textarea>
+              </div>
+            </div>
+            <div style="margin-top: 1.4rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <button type="submit" class="btn btn-solid btn-lg">Send Enquiry</button>
+              <span class="form-status" id="form-status" role="status"></span>
+            </div>
+            <p class="form-hint">Submitting opens your email client with the enquiry pre-filled, addressed to {{site.email}} — nothing is sent until you press send in your mail app.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+{{> footer}}
+</body>
+</html>

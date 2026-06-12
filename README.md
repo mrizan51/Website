@@ -1,4 +1,87 @@
-# Website
+# Premier Exports International — premierexport.in
+
+Corporate website for **Premier Exports International**, EU-approved exporters
+of frozen seafood from Aroor, Kerala, India — established 1982.
+
+Built as a dependency-free static site: hand-crafted HTML/CSS/JS assembled by
+a 150-line Node build script. No frameworks, no npm packages, nothing to
+maintain or patch.
+
+## Pages
+
+| Page | Purpose |
+|---|---|
+| `/` | Home — hero, highlights, product categories, brands, markets |
+| `/about.html` | Company story since 1982, values, brands, milestones |
+| `/products.html` | Full catalogue: 38 items in 4 categories with scientific names |
+| `/markets.html` | Export regions (Japan, EU, USA, Gulf, China) + logistics |
+| `/quality.html` | Certifications, HACCP process chain, traceability, testing |
+| `/contact.html` | Head office details + request-a-quote form |
+
+## Editing content
+
+Almost everything an owner needs to change lives in two JSON files:
+
+- **`src/data/site.json`** — contact email, phone, address, brands, markets.
+  ⚠️ `email` is currently set to `info@premierexport.in` — **confirm or change
+  this before launch**; the quote form and footer use it.
+- **`src/data/products.json`** — the product catalogue. Add a product by adding
+  one object (`name`, `sci`, `forms`, optional `note`) to a category's `items`.
+
+Page copy lives in `src/pages/*.html`; shared header/footer in `src/partials/`;
+design system in `src/assets/css/style.css`.
+
+## Build & preview
+
+```bash
+node build.mjs                       # builds into dist/
+python3 -m http.server 8080 -d dist  # preview at http://localhost:8080
+```
+
+The build inlines partials, renders the catalogue from JSON, stamps SEO meta /
+canonical / JSON-LD organization markup, and emits `sitemap.xml`, `robots.txt`
+and `.nojekyll`.
+
+## Deployment (GitHub Pages — free)
+
+`.github/workflows/deploy.yml` builds and publishes `dist/` on every push.
+One-time setup:
+
+1. GitHub repo → **Settings → Pages → Source: GitHub Actions**.
+2. Push (or re-run the workflow). The site appears at
+   `https://<user>.github.io/<repo>/` for preview.
+3. **Custom domain:** in Settings → Pages, set custom domain
+   `premierexport.in`, then at your DNS provider point the domain at
+   GitHub Pages:
+   - `A` records for `premierexport.in` → `185.199.108.153`,
+     `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+   - `CNAME` record for `www` → `<user>.github.io`
+4. Enable **Enforce HTTPS** once the certificate is issued.
+
+> ⚠️ Switching DNS replaces the site currently served at premierexport.in.
+> Preview on the github.io URL first and switch DNS only when ready.
+
+(Cloudflare Pages / Netlify work equally well: build command `node build.mjs`,
+output directory `dist`.)
+
+## Quote form
+
+The form is static-host friendly: it opens the visitor's email client with a
+pre-filled enquiry to the address in `site.json`. To upgrade to silent inline
+submission later, point the form at a HubSpot form, Formspree or similar
+endpoint — markup is ready in `src/pages/contact.html`.
+
+## Pre-launch checklist
+
+- [ ] Confirm inquiry **email** (`src/data/site.json`) — currently assumed `info@premierexport.in`
+- [ ] Add **phone / WhatsApp** numbers to `site.json` (hidden until provided)
+- [ ] Confirm **founding year** (public registry says 30-Apr-1982)
+- [ ] Confirm certifications shown on `/quality.html` (EU approval no., HACCP, MPEDA, FSSAI)
+- [ ] Review product **forms** (HOSO/HLSO/PD/etc.) per species
+- [ ] Replace recreated SVG logo with original vector artwork if available
+- [ ] Add real facility/product photography when available
+
+---
 
 ## Claude Code skills
 

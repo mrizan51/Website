@@ -1,0 +1,75 @@
+{
+  "packingNote": "All products are available block frozen or IQF, in retail or bulk packing to buyer specification. Private labelling is available under our house brands — Prime, Premier and Primus — or under the buyer's own brand.",
+  "categories": [
+    {
+      "id": "shrimp",
+      "name": "Shrimp & Prawns",
+      "icon": "shrimp",
+      "intro": "Farmed and wild-caught shrimp — from coastal waters to deep-sea grounds — processed head-on, headless or peeled to your specification.",
+      "items": [
+        { "name": "White Vannamei Shrimp", "sci": "Litopenaeus vannamei", "forms": ["HOSO", "HLSO", "PD", "PUD", "PDTO"], "note": "Farmed" },
+        { "name": "Tiger Prawn", "sci": "Penaeus monodon", "forms": ["HOSO", "HLSO", "PD", "PUD"], "note": "Farmed & wild-caught" },
+        { "name": "Flower Shrimp", "sci": "Penaeus semisulcatus", "forms": ["HLSO", "PD", "PUD"], "note": "Wild-caught" },
+        { "name": "White Shrimp", "sci": "Penaeus indicus", "forms": ["HOSO", "HLSO", "PD", "PUD"], "note": "Wild-caught" },
+        { "name": "Bamboo Shrimp", "sci": "Penaeus japonicus", "forms": ["HOSO", "HLSO", "PD"], "note": "Wild-caught" },
+        { "name": "Brown Shrimp", "sci": "Metapenaeus affinis", "forms": ["HLSO", "PD", "PUD"], "note": "Wild-caught" },
+        { "name": "Pink Shrimp", "sci": "Heterocarpus woodmasoni", "forms": ["HLSO", "PD", "PUD"], "note": "Deep-sea, wild-caught" },
+        { "name": "Red Shrimp", "sci": "Aristeus alcocki", "forms": ["HLSO", "PD", "PUD"], "note": "Deep-sea, wild-caught" }
+      ]
+    },
+    {
+      "id": "shellfish",
+      "name": "Lobster, Crab & Clams",
+      "icon": "crab",
+      "intro": "Lobster, swimming crab and backwater clams from Kerala's coastal fisheries, graded and frozen at peak freshness.",
+      "items": [
+        { "name": "Deep Sea Lobster", "sci": "Puerulus spp.", "forms": ["Whole", "Tails"], "note": "Deep-sea, wild-caught" },
+        { "name": "Sand Lobster", "sci": "Thenus orientalis", "forms": ["Whole", "Meat"], "note": "Wild-caught" },
+        { "name": "Mud Crab", "sci": "Scylla serrata", "forms": ["Whole", "Cut"], "note": "Wild-caught" },
+        { "name": "Blue Swimming Crab", "sci": "Portunus pelagicus", "forms": ["Whole", "Cut", "Meat"], "note": "Wild-caught" },
+        { "name": "Green Crab", "sci": "Portunus sanguinolentus", "forms": ["Whole", "Cut"], "note": "Wild-caught" },
+        { "name": "Red Crab", "sci": "Charybdis cruciata", "forms": ["Whole", "Cut"], "note": "Wild-caught" },
+        { "name": "Yellow Clam", "sci": "Meretrix meretrix", "forms": ["Whole Shell-On", "Meat"], "note": "Wild-harvested" },
+        { "name": "Black Clam", "sci": "Villorita cyprinoides", "forms": ["Meat"], "note": "Backwater-harvested" }
+      ]
+    },
+    {
+      "id": "cephalopods",
+      "name": "Cephalopods",
+      "icon": "squid",
+      "intro": "Squid, cuttlefish and octopus from the Arabian Sea, cleaned and graded by hand.",
+      "items": [
+        { "name": "Cuttlefish", "sci": "Sepia pharaonis", "forms": ["Whole Round", "Whole Cleaned", "Fillet"] },
+        { "name": "Arrow Squid", "sci": "Doryteuthis sibogae", "forms": ["Whole Round", "Whole Cleaned", "Rings", "Tubes"] },
+        { "name": "Semi Needle Squid", "sci": "Doryteuthis singhalensis", "forms": ["Whole Round", "Whole Cleaned", "Rings", "Tubes"] },
+        { "name": "White Squid", "sci": "Loligo duvauceli", "forms": ["Whole Round", "Whole Cleaned", "Rings", "Tubes", "Tentacles"] },
+        { "name": "Octopus", "sci": "Octopus membranaceus · Octopus spp.", "forms": ["Whole Cleaned", "Flower-Cut"] }
+      ]
+    },
+    {
+      "id": "fish",
+      "name": "Fish",
+      "icon": "fish",
+      "intro": "Premium whole and processed fish landed daily at harbours along Kerala's coast.",
+      "items": [
+        { "name": "Black Pomfret", "sci": "Parastromateus niger", "forms": ["Whole Round", "Block / IQF"] },
+        { "name": "White Pomfret", "sci": "Pampus argenteus", "forms": ["Whole Round", "Block / IQF"] },
+        { "name": "Humpback Red Snapper", "sci": "Lutjanus gibbus", "forms": ["Whole Round", "Gutted"] },
+        { "name": "Malabar Blood Snapper", "sci": "Lutjanus malabaricus", "forms": ["Whole Round", "Gutted"] },
+        { "name": "White Snapper", "sci": "Pristipomoides multidens", "forms": ["Whole Round", "Gutted"] },
+        { "name": "Red Mullet", "sci": "Parupeneus indicus", "forms": ["Whole Round"] },
+        { "name": "Malabar Reef Cod", "sci": "Epinephelus malabaricus", "forms": ["Whole Round", "Gutted"] },
+        { "name": "Red Belly Reef Cod", "sci": "Epinephelus diacanthus", "forms": ["Whole Round", "Gutted"] },
+        { "name": "Red Reef Cod", "sci": "Cephalopholis sonnerati", "forms": ["Whole Round", "Gutted"] },
+        { "name": "Leather Jacket", "sci": "Balistes fraenatus", "forms": ["Whole Round", "Skinless"] },
+        { "name": "Pink Sea Bream", "sci": "Nemipterus japonicus", "forms": ["Whole Round", "Block / IQF"] },
+        { "name": "Emperor", "sci": "Lethrinus nebulosus", "forms": ["Whole Round", "Gutted"] },
+        { "name": "Indian Mackerel", "sci": "Rastrelliger kanagurta", "forms": ["Whole Round", "Block / IQF"] },
+        { "name": "Indian Oil Sardine", "sci": "Sardinella longiceps", "forms": ["Whole Round", "Block / IQF"] },
+        { "name": "Lizard Fish", "sci": "Saurida undosquamis", "forms": ["Whole Round"] },
+        { "name": "Yellowfin Tuna", "sci": "Thunnus albacares", "forms": ["Whole Round", "Loins", "Steaks"] },
+        { "name": "Skipjack Tuna", "sci": "Katsuwonus pelamis", "forms": ["Whole Round", "Loins"] }
+      ]
+    }
+  ]
+}

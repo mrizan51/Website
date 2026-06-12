@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Premier Exports International globe emblem">
+  <g fill="none" stroke="#1AA3D8">
+    <!-- globe outline -->
+    <circle cx="200" cy="200" r="150" stroke-width="5"/>
+    <!-- meridians -->
+    <ellipse cx="200" cy="200" rx="55" ry="150" stroke-width="2.4"/>
+    <ellipse cx="200" cy="200" rx="110" ry="150" stroke-width="2.4"/>
+    <line x1="200" y1="50" x2="200" y2="350" stroke-width="2.4"/>
+    <!-- parallels -->
+    <path d="M 88 125 Q 200 96 312 125" stroke-width="2.4"/>
+    <path d="M 70 162 Q 200 140 330 162" stroke-width="2.4"/>
+    <path d="M 50 200 L 350 200" stroke-width="2.4"/>
+    <path d="M 70 238 Q 200 260 330 238" stroke-width="2.4"/>
+    <path d="M 88 275 Q 200 304 312 275" stroke-width="2.4"/>
+  </g>
+  <!-- banner sweeping across the globe -->
+  <g fill="#1AA3D8">
+    <path d="M 30 176 Q 200 132 386 138 L 374 204 Q 200 198 42 240 Z"/>
+    <!-- speed dashes at the banner's left -->
+    <rect x="34" y="122" width="76" height="15" rx="3" transform="rotate(-13 72 129)"/>
+    <rect x="16" y="150" width="46" height="15" rx="3" transform="rotate(-13 39 157)"/>
+  </g>
+  <text x="206" y="198" text-anchor="middle" transform="rotate(-5 206 180)" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="66" letter-spacing="4" fill="#FFFFFF">PEI</text>
+</svg>

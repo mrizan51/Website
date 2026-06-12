@@ -1,0 +1,53 @@
+<!--meta {"title":"Products — Frozen Shrimp, Lobster, Crab, Cephalopods & Fish | Premier Exports International","description":"Our complete catalogue: vannamei and tiger shrimp, deep-sea lobster, crab, clams, cuttlefish, squid, octopus, pomfret, snapper, reef cod, tuna and more — block frozen or IQF, packed to buyer specification.","path":"/products.html","nav":"products"}-->
+<!doctype html>
+<html lang="en">
+<head>
+{{> head}}
+</head>
+<body>
+{{> header}}
+<main id="main">
+
+  <section class="page-head">
+    <svg class="head-art" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+      <g stroke="#7fd0ef" stroke-width="1.2">
+        <circle cx="200" cy="200" r="150"/>
+        <ellipse cx="200" cy="200" rx="55" ry="150"/>
+        <ellipse cx="200" cy="200" rx="110" ry="150"/>
+        <path d="M 70 162 Q 200 140 330 162"/>
+        <path d="M 50 200 L 350 200"/>
+        <path d="M 70 238 Q 200 260 330 238"/>
+      </g>
+    </svg>
+    <div class="container">
+      <span class="kicker">Our Products</span>
+      <h1>The complete catalogue.</h1>
+      <p>Thirty-five-plus species across shrimp, lobster, crab, clams, cephalopods and fish — landed on India's west coast, processed in our EU-approved facility, and frozen to lock in the day they were caught.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="packing-note reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v.5M12 11v5"/></svg>
+        <p>{{PACKING_NOTE}}</p>
+      </div>
+
+      {{PRODUCT_SECTIONS}}
+
+      <p class="reveal" style="margin-top: 2.6rem; color: var(--muted); font-size: 0.95rem;">Sizes, grades and counts vary by season and catch. Contact us for current availability and detailed specifications on any item.</p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container" style="text-align: center;">
+      <h2 class="reveal">Need a specification sheet or current offer?</h2>
+      <p class="reveal" style="margin: 0.8rem auto 1.8rem; max-width: 54ch;">Send us the species and forms you're interested in — we'll reply with availability, sizing and pricing.</p>
+      <a class="btn btn-solid btn-lg reveal" href="/contact.html#quote">Request a Quote</a>
+    </div>
+  </section>
+
+</main>
+{{> footer}}
+</body>
+</html>
