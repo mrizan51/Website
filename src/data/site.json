@@ -36,5 +36,37 @@
   "brands": ["Prime", "Premier", "Primus"],
   "markets": ["Japan", "Europe", "Middle East"],
   "customers": ["Importers", "Wholesalers", "Distributors", "Retailers", "Restaurants"],
-  "certifications": ["EU Approved", "Japan Approved", "HACCP Certified", "BRCGS (A Grade)"]
+  "certifications": ["EU Approved", "Japan Approved", "BRCGS (A Grade)", "HACCP Certified", "U.S. FDA Registered", "MPEDA Registered"],
+  "registrations": [
+    {
+      "name": "EIA Establishment Approval (HACCP)",
+      "number": "644",
+      "body": "Export Inspection Agency, Kochi — Ministry of Commerce & Industry, Govt. of India",
+      "valid": "10 Nov 2026"
+    },
+    {
+      "name": "MPEDA Exporter Registration",
+      "number": "KL1/MT/033/04",
+      "body": "Marine Products Export Development Authority — Manufacturer Exporter",
+      "valid": "19 Dec 2028"
+    },
+    {
+      "name": "MPEDA RCMC",
+      "number": "MPEDA/RCMC/KL1/MT/033/04",
+      "body": "MPEDA, Regional Division Kochi",
+      "valid": "31 Mar 2030"
+    },
+    {
+      "name": "U.S. FDA Food Facility Registration",
+      "number": "12928104236",
+      "body": "U.S. Food and Drug Administration",
+      "valid": "31 Dec 2026"
+    },
+    {
+      "name": "Importer-Exporter Code (IEC)",
+      "number": "1088007121",
+      "body": "Directorate General of Foreign Trade — held since 1988",
+      "valid": "Ongoing"
+    }
+  ]
 }

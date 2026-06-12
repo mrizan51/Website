@@ -81,7 +81,13 @@ endpoint — markup is ready in `src/pages/contact.html`.
 - [x] **Founders** (1982): K. M. Abdulla, A. Musthafa · **Management**: Salim K. A., Mohammed Rizan Salim, Nissam Musthafa
 - [x] **Certifications**: EU, Japan, HACCP, BRCGS (A Grade) — confirmed by owner
 - [x] **Markets**: Japan, Europe, Middle East — confirmed by owner
-- [ ] Add **EU / BRCGS approval numbers** to `/quality.html` if you want them shown publicly
+- [x] **Registration numbers** documented from certificates: EIA approval 644
+  (HACCP, valid 10 Nov 2026), MPEDA KL1/MT/033/04 (valid 19 Dec 2028), MPEDA
+  RCMC (valid 31 Mar 2030), U.S. FDA 12928104236 (cycle to 31 Dec 2026), IEC
+  1088007121 — shown on `/quality.html` (renewal dates → update `site.json`
+  → `registrations` when certificates renew)
+- [ ] **BRCGS certificate number** not yet provided — add to the registrations
+  table when available
 - [ ] Add **WhatsApp** number if used for trade enquiries (`site.json` → `whatsapp`)
 - [ ] **Verify one scientific name**: "Kazhanthan" mapped to *Metapenaeus monoceros* (Speckled Shrimp) — confirm or correct in `products.json`
 - [ ] Confirm partner **titles** (currently "Partner" for all three — adjust in `site.json` if specific roles preferred)

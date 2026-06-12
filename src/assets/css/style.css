@@ -384,6 +384,42 @@ h3 { font-size: 1.22rem; }
 .cert-card h3 { margin-top: 1rem; font-size: 1.05rem; }
 .cert-card p { font-size: 0.92rem; color: var(--muted); }
 
+/* Registrations table */
+.reg-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.reg-table { width: 100%; border-collapse: collapse; font-size: 0.96rem; min-width: 640px; }
+.reg-table thead th {
+  font-family: var(--font-head);
+  font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted);
+  text-align: left;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--mist);
+}
+.reg-table tbody th, .reg-table tbody td {
+  padding: 0.95rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left; vertical-align: top;
+}
+.reg-table tbody tr:last-child th, .reg-table tbody tr:last-child td { border-bottom: none; }
+.reg-table tbody th { color: var(--ink); font-weight: 600; font-family: var(--font-head); font-size: 0.95rem; }
+.reg-no {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.88rem;
+  background: var(--cyan-soft);
+  color: var(--brand-deep);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
 /* Process steps */
 .steps { counter-reset: step; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
 .step {

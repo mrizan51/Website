@@ -128,6 +128,16 @@ const brandChips = site.brands
   .map((b) => `<span class="brand-chip"><span>●</span> ${esc(b)}</span>`)
   .join("\n          ");
 const certChips = site.certifications.map((c) => `<span class="chip">${esc(c)}</span>`).join("");
+const regRows = (site.registrations || [])
+  .map(
+    (r) => `<tr>
+          <th scope="row">${esc(r.name)}</th>
+          <td><span class="reg-no">${esc(r.number)}</span></td>
+          <td>${esc(r.body)}</td>
+          <td>${esc(r.valid)}</td>
+        </tr>`
+  )
+  .join("\n        ");
 const addressInline = site.address.lines.map(esc).join("<br>");
 const mapsUrl = esc(
   "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(site.address.mapsQuery)
@@ -161,6 +171,7 @@ const GENERATED = {
   LEADERSHIP_CARDS: leadershipCards,
   BRAND_CHIPS: brandChips,
   CERT_CHIPS: certChips,
+  REG_ROWS: regRows,
   ADDRESS_INLINE: addressInline,
   ADDRESS_BLOCK: addressInline,
   PHONE_BLOCK: phoneBlock,
