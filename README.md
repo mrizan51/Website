@@ -16,6 +16,18 @@ in any browser — no build step, no network access, nothing to install.
 - The working draft is kept in the browser's local storage, so a reload or an
   accidental close does not lose the order.
 
+[`purchase-order/PEI-Purchase-Order.docx`](purchase-order/PEI-Purchase-Order.docx)
+is the same form as a Word document, for when an order has to be edited in Word
+or sent as an attachment. It carries the same letterhead, palette, type scale and
+terms, laid out on one A4 page with five blank item rows. Word does not
+recalculate the totals — type them, or use the HTML form and save that as a PDF.
+
+Rebuild it after changing the design with:
+
+```
+node tools/build-docx.js purchase-order/PEI-Purchase-Order.docx
+```
+
 ## Claude Code skills
 
 ### 3d-asset-generator
