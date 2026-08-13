@@ -1,5 +1,21 @@
 # Website
 
+## Purchase order
+
+[`purchase-order/index.html`](purchase-order/index.html) is a self-contained,
+print-ready purchase order form for Premier Exports International. Open the file
+in any browser — no build step, no network access, nothing to install.
+
+- Every field on the sheet is editable in place; line totals, GST, round-off and
+  the amount in words (Indian lakh/crore wording) recalculate as you type.
+- Supply type switches between **CGST + SGST** (within Kerala), **IGST**
+  (other states) and **no GST** (export); the combined rate carries across.
+- Prints to A4 via the browser's *Save as PDF*. A two-line order fits one page;
+  longer orders flow over with the table header repeated, and the terms and
+  signature blocks kept whole.
+- The working draft is kept in the browser's local storage, so a reload or an
+  accidental close does not lose the order.
+
 ## Claude Code skills
 
 ### 3d-asset-generator

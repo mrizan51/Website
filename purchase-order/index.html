@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PEI Purchase Order</title>
+<style>
+/* ============================================================
+   TOKENS
+   Two groups, deliberately separated:
+   - SHEET tokens are fixed. The sheet is paper; paper is white
+     in every theme, and its ink must stay legible on it.
+   - CHROME tokens adapt to the viewer's theme (all three states:
+     unstamped + prefers-color-scheme, and explicit data-theme).
+   ============================================================ */
+:root{
+  /* --- sheet (fixed, never redefined) --- */
+  --paper:#FFFFFF;
+  --ink:#0B2C3A;
+  --brand:#00A6D6;
+  --brand-deep:#07607E;
+  --wash:#F2F8FB;
+  --band:#E7F3F9;
+  --line:#CBDFE8;
+  --rule:#9EC4D5;
+  --muted:#5E7C8B;
+
+  /* --- chrome (light) --- */
+  --desk:#E4EDF2;
+  --desk-ink:#0B2C3A;
+  --desk-muted:#54727F;
+  --chrome-surface:#FFFFFF;
+  --chrome-line:#C3D7E0;
+  --chrome-hover:#F1F7FA;
+
+  /* --- type --- */
+  --sans:"Helvetica Neue",Helvetica,"Arial Nova",Arial,"Liberation Sans",sans-serif;
+  --serif:Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Mono","Roboto Mono",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --desk:#0B191F;
+    --desk-ink:#DCEAF0;
+    --desk-muted:#8FAEBB;
+    --chrome-surface:#132832;
+    --chrome-line:#27454F;
+    --chrome-hover:#1B3642;
+  }
+}
+:root[data-theme="dark"]{
+  --desk:#0B191F;
+  --desk-ink:#DCEAF0;
+  --desk-muted:#8FAEBB;
+  --chrome-surface:#132832;
+  --chrome-line:#27454F;
+  --chrome-hover:#1B3642;
+}
+
+*{box-sizing:border-box}
+/* tables lose inherited font-size in quirks mode; state it outright */
+table{font-size:inherit}
+
+body{
+  margin:0;
+  background:var(--desk);
+  color:var(--desk-ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  padding:22px 16px 64px;
+}
+
+/* ============================================================
+   SCREEN CHROME
+   ============================================================ */
+.chrome{max-width:210mm;margin:0 auto 18px}
+.bar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  background:var(--chrome-surface);
+  border:1px solid var(--chrome-line);
+  border-radius:10px;
+  padding:10px;
+}
+.btn{
+  font-family:var(--sans);font-size:13px;font-weight:600;
+  color:var(--desk-ink);background:var(--chrome-surface);
+  border:1px solid var(--chrome-line);border-radius:7px;
+  padding:8px 13px;cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
+}
+.btn:hover{background:var(--chrome-hover);border-color:var(--brand)}
+.btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-deep);border-color:var(--brand-deep)}
+.seg{display:flex;align-items:center;gap:8px;margin-left:auto}
+.seg label{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--desk-muted);font-weight:700}
+.seg select{
+  font-family:var(--sans);font-size:13px;color:var(--desk-ink);
+  background:var(--chrome-surface);border:1px solid var(--chrome-line);
+  border-radius:7px;padding:8px 10px;cursor:pointer;
+}
+.seg select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.hint{
+  margin:9px 2px 0;font-size:12.5px;line-height:1.55;color:var(--desk-muted);
+}
+.hint kbd{
+  font-family:var(--mono);font-size:11px;border:1px solid var(--chrome-line);
+  border-bottom-width:2px;border-radius:4px;padding:1px 5px;
+}
+
+/* ============================================================
+   THE SHEET  (A4)
+   ============================================================ */
+.sheet{
+  width:210mm;min-height:297mm;margin:0 auto;
+  background:var(--paper);color:var(--ink);
+  padding:13mm 13mm 12mm;
+  box-shadow:0 1px 2px rgba(11,44,58,.14),0 14px 42px rgba(11,44,58,.16);
+  position:relative;
+  font-size:9.2pt;line-height:1.42;
+}
+
+/* ---------- letterhead ---------- */
+.letterhead{display:flex;align-items:flex-start;gap:14px}
+.lockup{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+.mark{width:52px;height:52px;color:var(--brand);flex:0 0 auto;display:block}
+.wordmark{line-height:1.02}
+.wordmark b{
+  display:block;font-weight:300;font-size:18.5pt;letter-spacing:-.012em;
+  color:var(--brand);
+}
+.wordmark span{
+  display:block;margin-top:4px;font-size:6.6pt;font-weight:700;
+  letter-spacing:.34em;text-transform:uppercase;color:var(--muted);
+}
+.lh-contact{
+  margin-left:auto;text-align:right;font-size:7.9pt;line-height:1.5;
+  color:var(--muted);padding-top:3px;max-width:74mm;
+}
+.lh-contact .gst{
+  font-family:var(--mono);font-size:7.8pt;color:var(--ink);
+  letter-spacing:.02em;
+}
+
+.brandrule{margin-top:9px;border-top:2.5pt solid var(--brand)}
+.brandrule::after{content:"";display:block;margin-top:1.6px;border-top:.7pt solid var(--rule)}
+
+/* ---------- title band ---------- */
+.titleband{display:flex;align-items:flex-end;gap:14px;margin-top:8px}
+.titleband h1{
+  margin:0;font-size:19.5pt;font-weight:700;letter-spacing:.135em;
+  text-transform:uppercase;color:var(--ink);line-height:1;
+}
+.titleband .sub{
+  margin:5px 0 0;font-size:7.4pt;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;
+}
+.pobox{
+  margin-left:auto;border:.8pt solid var(--line);border-radius:3px;
+  overflow:hidden;width:82mm;flex:0 0 auto;
+}
+.pobox .r{display:flex;border-bottom:.8pt solid var(--line)}
+.pobox .r:last-child{border-bottom:0}
+.pobox .k{
+  flex:0 0 27mm;background:var(--wash);padding:2px 7px;
+  font-size:7.2pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border-right:.8pt solid var(--line);
+  display:flex;align-items:center;
+}
+.pobox .v{flex:1;min-width:0;padding:1px 7px;display:flex;align-items:center}
+.pobox .v .f{font-size:8.8pt}
+/* supplier's own reference is free text of unpredictable length: set it
+   in the narrower sans so a full ref-plus-date still lands on one line */
+.pobox .v .qref{font-family:var(--sans);font-size:8.2pt}
+.strip .f{font-size:8.8pt}
+
+/* ---------- parties ---------- */
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-top:3.5mm}
+.card{border:.8pt solid var(--line);border-radius:3px;overflow:hidden}
+.card>h2{
+  margin:0;background:var(--band);color:var(--brand-deep);
+  padding:3.5px 9px;font-size:7.3pt;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;
+  border-bottom:.8pt solid var(--line);
+}
+.card>.body{padding:5px 9px;min-height:17mm}
+
+/* ---------- order strip ---------- */
+.strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:.8pt solid var(--line);border-radius:3px;margin-top:3.5mm;overflow:hidden;
+}
+.strip>div{padding:4px 9px;border-right:.8pt solid var(--line)}
+.strip>div:last-child{border-right:0}
+.strip .k{
+  display:block;font-size:6.9pt;font-weight:700;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:2px;
+}
+
+/* ---------- items ---------- */
+.items-wrap{margin-top:4mm;overflow-x:auto}
+table.items{width:100%;border-collapse:collapse;table-layout:fixed}
+table.items thead th{
+  background:var(--brand-deep);color:#fff;
+  font-size:7.3pt;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  padding:5px 7px;text-align:left;border-right:.8pt solid rgba(255,255,255,.24);
+}
+table.items thead th:last-child{border-right:0}
+table.items tbody td{
+  border-bottom:.8pt solid var(--line);border-right:.8pt solid var(--line);
+  padding:3.5px 7px;vertical-align:top;
+}
+table.items tbody td:first-child{border-left:.8pt solid var(--line)}
+table.items tbody td:last-child{border-right:.8pt solid var(--line)}
+table.items tbody tr:nth-child(even) td{background:var(--wash)}
+.c-sl{text-align:center;font-family:var(--mono);font-size:8.4pt;color:var(--muted);padding-top:6px!important}
+.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.amt{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+
+/* editable fields inside the sheet */
+.f{
+  font-family:inherit;font-size:inherit;color:var(--ink);line-height:1.45;
+  background:transparent;border:0;border-bottom:.7pt dotted transparent;
+  padding:1px 2px;width:100%;display:block;border-radius:2px;
+}
+.f:hover{background:var(--wash)}
+.f:focus{outline:0;background:#FFF8E1;box-shadow:inset 0 -1.6px 0 var(--brand)}
+textarea.f{resize:none;overflow:hidden;min-height:1.45em}
+.f.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.f.right{text-align:right}
+.f.center{text-align:center}
+.f.bold{font-weight:700}
+.f::placeholder{color:var(--muted);opacity:.55}
+div.f[data-ph]:empty::before{content:attr(data-ph);color:var(--muted);opacity:.55}
+div.f{min-height:1.45em}
+
+/* Sits inside the serial cell on purpose: the items table is an
+   overflow-x container on narrow screens, so anything parked in the
+   margin outside the table gets clipped and becomes unclickable. */
+.del{
+  display:block;margin:4px auto 0;
+  width:17px;height:17px;line-height:1;
+  border:1px solid var(--line);border-radius:50%;
+  background:var(--paper);color:var(--muted);
+  font-size:12px;cursor:pointer;padding:0;
+  opacity:.3;transition:opacity .12s ease,color .12s ease,border-color .12s ease;
+}
+tr:hover .del,.del:focus-visible{opacity:1}
+.del:hover{color:#B3261E;border-color:#B3261E}
+.del:focus-visible{opacity:1;outline:2px solid var(--brand);outline-offset:1px}
+
+/* ---------- totals ---------- */
+.foot{display:grid;grid-template-columns:1fr 84mm;gap:5mm;margin-top:3.5mm;align-items:start}
+.foot-left{display:flex;flex-direction:column;gap:3.5mm}
+.notes>.body{min-height:11mm;font-size:8.4pt}
+.notes>.body[data-ph]:empty::before{content:attr(data-ph);color:var(--muted);opacity:.55}
+.notes>.body:hover{background:var(--wash)}
+.notes>.body:focus{outline:0;background:#FFF8E1}
+.inwords{border:.8pt solid var(--line);border-radius:3px;padding:6px 9px;background:var(--wash)}
+.inwords .k{
+  display:block;font-size:6.9pt;font-weight:700;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:3px;
+}
+.inwords .v{font-family:var(--serif);font-size:9.6pt;font-style:italic;color:var(--ink);line-height:1.5}
+
+table.totals{width:100%;border-collapse:collapse;border:.8pt solid var(--line)}
+table.totals td{padding:1.8px 9px;border-bottom:.8pt solid var(--line)}
+table.totals tr:last-child td{border-bottom:0}
+table.totals .lbl{color:var(--muted);font-size:8pt}
+table.totals .val{
+  text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
+  width:34mm;
+}
+table.totals tr.tax td{background:var(--wash)}
+table.totals tr.grand td{
+  background:var(--brand-deep);color:#fff;font-weight:700;
+  padding-top:5px;padding-bottom:5px;border-bottom:0;
+}
+table.totals tr.grand .lbl{
+  color:#fff;font-size:8.2pt;letter-spacing:.11em;text-transform:uppercase;
+}
+table.totals tr.grand .val{font-size:11.5pt}
+.rate-in{
+  width:30px;font-family:var(--mono);font-size:8.4pt;text-align:right;
+  border:0;border-bottom:.7pt dotted var(--rule);background:transparent;
+  color:var(--ink);padding:0 1px;
+}
+.rate-in:focus{outline:0;background:#FFF8E1;box-shadow:inset 0 -1.6px 0 var(--brand)}
+
+/* ---------- terms + signature ---------- */
+.terms{margin-top:3.5mm;break-inside:avoid}
+.terms h2,.sign h2{
+  margin:0 0 4px;font-size:7.3pt;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--brand-deep);
+  padding-bottom:3px;border-bottom:.8pt solid var(--line);
+}
+.terms ol{
+  margin:6px 0 0;padding-left:14px;
+  columns:2;column-gap:7mm;
+  font-family:var(--serif);font-size:7.5pt;line-height:1.36;color:var(--ink);
+}
+.terms li{margin-bottom:2.5px;break-inside:avoid;padding-left:2px}
+
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:3.5mm;break-inside:avoid}
+.sigbox .line{
+  margin-top:7mm;border-top:.8pt solid var(--ink);padding-top:3px;
+  font-size:7.6pt;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  font-weight:700;
+}
+.sigbox .for{font-size:8.6pt;font-weight:700;color:var(--ink)}
+
+.sheetfoot{
+  margin-top:2.5mm;padding-top:4px;border-top:.8pt solid var(--line);
+  font-size:7.2pt;color:var(--muted);display:flex;gap:10px;
+}
+.sheetfoot .r{margin-left:auto;font-family:var(--mono)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+
+/* ---------- responsive (screen only) ---------- */
+@media screen and (max-width:230mm){
+  body{padding:14px 10px 48px}
+  .sheet{width:100%;min-height:0;padding:8mm}
+  .chrome{max-width:100%}
+}
+@media screen and (max-width:640px){
+  .letterhead{flex-direction:column}
+  .lh-contact{margin-left:0;text-align:left;max-width:none}
+  .titleband{flex-direction:column;align-items:flex-start}
+  .pobox{margin-left:0;width:100%}
+  .parties,.foot,.sign{grid-template-columns:1fr}
+  .strip{grid-template-columns:1fr 1fr}
+  .terms ol{columns:1}
+  table.items{min-width:560px}
+}
+
+/* ============================================================
+   PRINT — A4
+   ============================================================ */
+@page{size:A4;margin:10mm}
+@media print{
+  body{background:#fff;padding:0}
+  .chrome,.del{display:none!important}
+  .sheet{
+    width:auto;min-height:0;margin:0;padding:0;
+    box-shadow:none;
+  }
+  .f:hover,.f:focus{background:transparent;box-shadow:none}
+  /* prompts are editing aids: a printed order must never carry them */
+  div.f[data-ph]:empty::before,
+  .notes>.body[data-ph]:empty::before{content:""!important}
+  ::placeholder{color:transparent!important;opacity:0!important}
+  .rate-in{border-bottom:0}
+  .items-wrap{overflow:visible}
+  table.items thead{display:table-header-group}
+  table.items tr{break-inside:avoid}
+  .foot,.terms,.sign{break-inside:avoid}
+  table.items thead th,table.totals tr.grand td{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="chrome">
+  <div class="bar">
+    <button class="btn" id="addRow">+ Add item</button>
+    <button class="btn" id="sample">Load sample</button>
+    <button class="btn" id="clear">Clear form</button>
+    <div class="seg">
+      <label for="gstmode">Supply</label>
+      <select id="gstmode">
+        <option value="intra">Within Kerala — CGST + SGST</option>
+        <option value="inter">Other state — IGST</option>
+        <option value="none">No GST / Export</option>
+      </select>
+      <button class="btn btn-primary" id="print">Print / Save PDF</button>
+    </div>
+  </div>
+  <p class="hint">
+    Every field on the sheet is editable — click and type. Totals, tax and the amount in words
+    recalculate as you go. Your draft is kept in this browser; use <kbd>Print / Save PDF</kbd>
+    and choose <em>Save as PDF</em> at A4 for the final copy.
+  </p>
+</div>
+
+<div class="sheet" id="sheet">
+
+  <!-- ============ LETTERHEAD ============ -->
+  <header class="letterhead">
+    <div class="lockup">
+      <svg class="mark" viewBox="0 0 200 200" role="img" aria-label="Premier Exports International">
+        <g fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="100" cy="100" r="78"/>
+          <ellipse cx="100" cy="100" rx="26" ry="78"/>
+          <ellipse cx="100" cy="100" rx="52" ry="78"/>
+          <path d="M100 22 L100 178"/>
+          <path d="M22 100 L178 100"/>
+          <path d="M31.9 62 Q100 76 168.1 62"/>
+          <path d="M31.9 138 Q100 152 168.1 138"/>
+          <path d="M50.2 40 Q100 50 149.8 40"/>
+          <path d="M50.2 160 Q100 170 149.8 160"/>
+        </g>
+        <path d="M22 78 C 60 62, 140 50, 178 44 L 164 67 L 178 90 C 140 96, 60 108, 22 124 Z"
+              fill="currentColor"/>
+        <g stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" fill="none">
+          <path d="M27 91 C 48 86, 70 81, 92 77"/>
+          <path d="M27 111 C 44 107, 60 103, 76 100"/>
+        </g>
+        <g transform="rotate(-11 100 80)">
+          <text x="100" y="93" text-anchor="middle" fill="#FFFFFF"
+                font-family="Helvetica Neue,Helvetica,Arial,sans-serif"
+                font-size="40" font-weight="700" font-style="italic"
+                letter-spacing="1">PEI</text>
+        </g>
+      </svg>
+      <div class="wordmark">
+        <b>Premier Exports</b>
+        <b>International</b>
+      </div>
+    </div>
+    <div class="lh-contact">
+      Chandiroor, Alappuzha &ndash; 688 537, Kerala, India<br>
+      Mob: +91 81290 99866<br>
+      premier.pei@gmail.com &nbsp;&middot;&nbsp; nazar.tk@hotmail.com<br>
+      <span class="gst">GSTIN <input class="f mono" data-f="buyerGstin" style="display:inline;width:auto;min-width:120px" placeholder="32XXXXXXXXXXXZX"></span>
+    </div>
+  </header>
+  <div class="brandrule"></div>
+
+  <!-- ============ TITLE BAND ============ -->
+  <div class="titleband">
+    <div>
+      <h1>Purchase Order</h1>
+      <p class="sub">Original for supplier</p>
+    </div>
+    <div class="pobox">
+      <div class="r">
+        <div class="k">P.O. No.</div>
+        <div class="v"><input class="f mono bold" data-f="poNo" placeholder="PEI/PO/26-27/001"></div>
+      </div>
+      <div class="r">
+        <div class="k">P.O. Date</div>
+        <div class="v"><input class="f mono" data-f="poDate" placeholder="13.08.2026"></div>
+      </div>
+      <div class="r">
+        <div class="k">Your Quotation</div>
+        <div class="v"><div class="f qref" contenteditable="true" data-f="quoteRef"
+                           data-ph="Ref &amp; date"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PARTIES ============ -->
+  <div class="parties">
+    <section class="card">
+      <h2>Supplier</h2>
+      <div class="body">
+        <div class="f bold" contenteditable="true" data-f="vendorName" data-ph="Supplier name"></div>
+        <div class="f" contenteditable="true" data-f="vendorAddr" data-ph="Address"></div>
+        <div class="f mono" contenteditable="true" data-f="vendorGst" data-ph="GSTIN"></div>
+        <div class="f" contenteditable="true" data-f="vendorContact" data-ph="Contact person, phone, e-mail"></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Deliver to</h2>
+      <div class="body">
+        <div class="f bold" contenteditable="true" data-f="shipName">Premier Exports International</div>
+        <div class="f" contenteditable="true" data-f="shipAddr">Chandiroor, Alappuzha &ndash; 688 537, Kerala, India</div>
+        <div class="f" contenteditable="true" data-f="shipContact" data-ph="Site contact, phone"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ ORDER STRIP ============ -->
+  <div class="strip">
+    <div><span class="k">Place of supply</span>
+      <div class="f" contenteditable="true" data-f="pos">Kerala (32)</div></div>
+    <div><span class="k">Payment terms</span>
+      <div class="f" contenteditable="true" data-f="payTerms" data-ph="e.g. 100% advance"></div></div>
+    <div><span class="k">Delivery on or before</span>
+      <div class="f mono" contenteditable="true" data-f="delivery" data-ph="DD.MM.YYYY"></div></div>
+    <div><span class="k">Dispatch mode</span>
+      <div class="f" contenteditable="true" data-f="dispatch" data-ph="Courier / road"></div></div>
+  </div>
+
+  <!-- ============ ITEMS ============ -->
+  <div class="items-wrap">
+    <table class="items">
+      <colgroup>
+        <col style="width:6%"><col style="width:34%"><col style="width:12%">
+        <col style="width:7%"><col style="width:11%"><col style="width:14%"><col style="width:16%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th style="text-align:center">Sl</th>
+          <th>Description of goods / services</th>
+          <th>HSN / SAC</th>
+          <th style="text-align:right">Qty</th>
+          <th>Unit</th>
+          <th style="text-align:right">Rate (&#8377;)</th>
+          <th style="text-align:right">Amount (&#8377;)</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ============ TOTALS ============ -->
+  <div class="foot">
+    <div class="foot-left">
+      <div class="inwords">
+        <span class="k">Amount chargeable in words</span>
+        <span class="v" id="words">Rupees Zero Only</span>
+      </div>
+      <section class="card notes">
+        <h2>Notes &amp; special instructions</h2>
+        <div class="body" contenteditable="true" data-f="notes"
+             data-ph="Marking, inspection, site contact, documents required with the consignment&hellip;"></div>
+      </section>
+    </div>
+    <table class="totals">
+      <tbody>
+        <tr><td class="lbl">Sub total</td><td class="val" id="tSub">0.00</td></tr>
+        <tr><td class="lbl">Less: discount</td>
+            <td class="val"><input class="f mono right" data-f="discount" value="0.00" inputmode="decimal"></td></tr>
+        <tr><td class="lbl">Add: freight &amp; packing</td>
+            <td class="val"><input class="f mono right" data-f="freight" value="0.00" inputmode="decimal"></td></tr>
+        <tr><td class="lbl"><strong>Taxable value</strong></td><td class="val" id="tTaxable">0.00</td></tr>
+      </tbody>
+      <tbody id="taxRows"></tbody>
+      <tbody>
+        <tr><td class="lbl">Round off</td><td class="val" id="tRound">0.00</td></tr>
+        <tr class="grand"><td class="lbl">Grand total</td><td class="val" id="tGrand">&#8377; 0</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ TERMS ============ -->
+  <section class="terms">
+    <h2>Terms &amp; conditions</h2>
+    <ol contenteditable="true" data-f="terms">
+      <li>Quote this order number and date on all invoices, challans, packing lists and correspondence.</li>
+      <li>Supply strictly to the make, model and specification stated. Substitutions need our prior written approval.</li>
+      <li>Rates are firm and include packing. GST extra as shown; freight at actuals where indicated.</li>
+      <li>A GST-compliant tax invoice quoting our GSTIN is required. Invoices without HSN / SAC codes will be returned.</li>
+      <li>Deliver on or before the date stated. Intimate any delay in writing; we may cancel the balance without liability.</li>
+      <li>Material is accepted subject to inspection at our works. Rejections are returnable at your cost.</li>
+      <li>Warranty twelve months from commissioning, unless your quotation offers longer.</li>
+      <li>Test weights, labour and lifting equipment for on-site calibration will be arranged by us where agreed in advance.</li>
+      <li>Payment as per the terms above, against material received in good condition and a correct invoice.</li>
+      <li>Disputes are subject to the jurisdiction of the courts at Alappuzha, Kerala.</li>
+    </ol>
+  </section>
+
+  <!-- ============ SIGNATURE ============ -->
+  <div class="sign">
+    <div class="sigbox">
+      <div class="for">Supplier's acknowledgement</div>
+      <div class="line">Signature, name &amp; date</div>
+    </div>
+    <div class="sigbox">
+      <div class="for">For Premier Exports International</div>
+      <div class="line">Authorised signatory</div>
+    </div>
+  </div>
+
+  <div class="sheetfoot">
+    <span>Please return one signed copy as confirmation of acceptance.</span>
+    <span class="r" id="footPo"></span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var tbody   = document.getElementById('tbody');
+  var taxRows = document.getElementById('taxRows');
+  var gstmode = document.getElementById('gstmode');
+
+  /* ---------- numbers ---------- */
+  function parseNum(v){
+    var n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.\-]/g,''));
+    return isFinite(n) ? n : 0;
+  }
+  var nf = new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  var nf0 = new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+  function fmt(n){ return nf.format(n || 0); }
+
+  /* ---------- amount in words (Indian system) ---------- */
+  var ONES = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+              'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen',
+              'Eighteen','Nineteen'];
+  var TENS = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+  function two(n){
+    if(n < 20) return ONES[n];
+    return TENS[Math.floor(n/10)] + (n % 10 ? ' ' + ONES[n % 10] : '');
+  }
+  function three(n){
+    var h = Math.floor(n/100), r = n % 100, out = '';
+    if(h) out += ONES[h] + ' Hundred' + (r ? ' and ' : '');
+    if(r) out += two(r);
+    return out;
+  }
+  function indianWords(n){
+    n = Math.floor(n);
+    if(n === 0) return 'Zero';
+    var out = '';
+    var cr = Math.floor(n/10000000); n %= 10000000;
+    var lk = Math.floor(n/100000);   n %= 100000;
+    var th = Math.floor(n/1000);     n %= 1000;
+    if(cr) out += (cr > 999 ? indianWords(cr) : three(cr)) + ' Crore ';
+    if(lk) out += three(lk) + ' Lakh ';
+    if(th) out += three(th) + ' Thousand ';
+    if(n)  out += three(n);
+    return out.trim().replace(/\s+/g,' ');
+  }
+  function rupeesInWords(amount){
+    var whole = Math.floor(amount);
+    var paise = Math.round((amount - whole) * 100);
+    if(paise === 100){ whole += 1; paise = 0; }
+    var s = 'Rupees ' + indianWords(whole);
+    if(paise) s += ' and ' + indianWords(paise) + ' Paise';
+    return s + ' Only';
+  }
+
+  /* ---------- rows ---------- */
+  function makeRow(d){
+    d = d || {};
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="c-sl"><span class="sl"></span><button class="del" type="button" title="Remove this row" aria-label="Remove this row">&times;</button></td>' +
+      '<td><div class="f c-desc" contenteditable="true" data-ph="Item description, make &amp; model"></div></td>' +
+      '<td><input class="f mono c-hsn" placeholder="&mdash;"></td>' +
+      '<td><input class="f mono right c-qty" inputmode="decimal" value="1"></td>' +
+      '<td><input class="f c-unit" placeholder="Nos"></td>' +
+      '<td><input class="f mono right c-rate" inputmode="decimal" placeholder="0.00"></td>' +
+      '<td class="amt c-amt">0.00</td>';
+    tr.querySelector('.c-desc').innerHTML = d.d || '';
+    tr.querySelector('.c-hsn').value      = d.h || '';
+    tr.querySelector('.c-qty').value      = d.q != null ? d.q : '1';
+    tr.querySelector('.c-unit').value     = d.u || '';
+    tr.querySelector('.c-rate').value     = d.r || '';
+    tr.querySelector('.del').addEventListener('click', function(){
+      tr.remove();
+      if(!tbody.children.length) addRow();
+      recalc(); save();
+    });
+    return tr;
+  }
+  function addRow(d){ tbody.appendChild(makeRow(d)); recalc(); }
+
+  /* ---------- tax rows ----------
+     Built only when the supply type changes, never on every keystroke —
+     rebuilding them inside recalc() would blow away the rate input the
+     user is typing into. `fullRate` is the combined GST rate; under an
+     intra-state supply it is split across CGST and SGST, so switching
+     between Kerala and out-of-state keeps the effective rate intact. */
+  var fullRate = 18;
+
+  function tidyRate(n){ return String(Math.round(n * 1000) / 1000); }
+
+  function renderTaxRows(){
+    var mode = gstmode.value;
+    if(mode === 'intra'){
+      taxRows.innerHTML =
+        '<tr class="tax"><td class="lbl">CGST @ <input class="rate-in" id="gstRate" inputmode="decimal"> %</td>' +
+        '<td class="val" id="tCgst">0.00</td></tr>' +
+        '<tr class="tax"><td class="lbl">SGST @ <span id="sgstRate">0</span> %</td>' +
+        '<td class="val" id="tSgst">0.00</td></tr>';
+      document.getElementById('gstRate').value = tidyRate(fullRate / 2);
+    } else if(mode === 'inter'){
+      taxRows.innerHTML =
+        '<tr class="tax"><td class="lbl">IGST @ <input class="rate-in" id="gstRate" inputmode="decimal"> %</td>' +
+        '<td class="val" id="tIgst">0.00</td></tr>';
+      document.getElementById('gstRate').value = tidyRate(fullRate);
+    } else {
+      taxRows.innerHTML =
+        '<tr class="tax"><td class="lbl">GST</td><td class="val">Nil</td></tr>';
+    }
+  }
+
+  /* ---------- calculation ---------- */
+  function recalc(){
+    var sub = 0;
+    Array.prototype.forEach.call(tbody.children, function(tr,i){
+      tr.querySelector('.sl').textContent = (i + 1);
+      var amt = parseNum(tr.querySelector('.c-qty').value) *
+                parseNum(tr.querySelector('.c-rate').value);
+      sub += amt;
+      tr.querySelector('.c-amt').textContent = fmt(amt);
+    });
+
+    var disc    = parseNum(field('discount'));
+    var freight = parseNum(field('freight'));
+    var taxable = sub - disc + freight;
+
+    document.getElementById('tSub').textContent     = fmt(sub);
+    document.getElementById('tTaxable').textContent = fmt(taxable);
+
+    var mode = gstmode.value;
+    var rateEl = document.getElementById('gstRate');
+    var tax = 0;
+
+    if(mode === 'intra'){
+      var half = parseNum(rateEl.value);
+      fullRate = half * 2;
+      var each = taxable * half / 100;
+      tax = each * 2;
+      document.getElementById('sgstRate').textContent = tidyRate(half);
+      document.getElementById('tCgst').textContent = fmt(each);
+      document.getElementById('tSgst').textContent = fmt(each);
+    } else if(mode === 'inter'){
+      fullRate = parseNum(rateEl.value);
+      tax = taxable * fullRate / 100;
+      document.getElementById('tIgst').textContent = fmt(tax);
+    }
+
+    var total    = taxable + tax;
+    var rounded  = Math.round(total);
+    var roundOff = rounded - total;
+
+    document.getElementById('tRound').textContent =
+      (roundOff < 0 ? '−' : '') + fmt(Math.abs(roundOff));
+    document.getElementById('tGrand').textContent = '₹ ' + nf0.format(rounded);
+    document.getElementById('words').textContent  = rupeesInWords(rounded);
+    document.getElementById('footPo').textContent = field('poNo') || '';
+  }
+
+  /* ---------- field helpers ---------- */
+  function field(name){
+    var el = document.querySelector('[data-f="' + name + '"]');
+    if(!el) return '';
+    return ('value' in el && el.tagName !== 'DIV' && el.tagName !== 'OL')
+      ? el.value : el.innerHTML;
+  }
+
+  /* ---------- persistence ---------- */
+  var saveTimer;
+  function snapshot(){
+    var o = { fields:{}, rows:[], mode:gstmode.value, rate:fullRate };
+    document.querySelectorAll('[data-f]').forEach(function(el){
+      o.fields[el.dataset.f] =
+        (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')
+          ? el.value : el.innerHTML;
+    });
+    Array.prototype.forEach.call(tbody.children, function(tr){
+      o.rows.push({
+        d: tr.querySelector('.c-desc').innerHTML,
+        h: tr.querySelector('.c-hsn').value,
+        q: tr.querySelector('.c-qty').value,
+        u: tr.querySelector('.c-unit').value,
+        r: tr.querySelector('.c-rate').value
+      });
+    });
+    return o;
+  }
+  function save(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      try{ localStorage.setItem('pei-po', JSON.stringify(snapshot())); }catch(e){}
+    }, 300);
+  }
+  function restore(o){
+    if(!o) return false;
+    Object.keys(o.fields || {}).forEach(function(k){
+      var el = document.querySelector('[data-f="' + k + '"]');
+      if(!el) return;
+      if(el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA'){
+        el.value = o.fields[k];
+      } else {
+        el.innerHTML = o.fields[k];
+      }
+    });
+    gstmode.value = o.mode || 'intra';
+    fullRate = o.rate != null ? o.rate : 18;
+    renderTaxRows();
+    tbody.innerHTML = '';
+    (o.rows && o.rows.length ? o.rows : [{}]).forEach(function(r){ tbody.appendChild(makeRow(r)); });
+    recalc();
+    return true;
+  }
+
+  /* ---------- sample, drawn from a real supplier quotation ---------- */
+  /* writes to a field whether it is an input or a contenteditable block */
+  function setField(name, html){
+    var el = document.querySelector('[data-f="' + name + '"]');
+    if(!el) return;
+    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT'){
+      el.value = html.replace(/<br>/g,' ').replace(/&ndash;/g,'–').replace(/&middot;/g,'·');
+    } else {
+      el.innerHTML = html;
+    }
+  }
+
+  function loadSample(){
+    setField('poNo',     'PEI/PO/26-27/001');
+    setField('poDate',   '13.08.2026');
+    setField('quoteRef', 'UV/MT/SPR/26-27/032 dt. 04.08.2026');
+    setField('vendorName', 'M/s. Univend Associates Private Limited');
+    setField('vendorAddr',
+      'S-10, Delta Centre, M. C. Road, Angamaly,<br>Ernakulam District, Kerala &ndash; 683 572');
+    setField('vendorGst', 'GSTIN 32XXXXXXXXXXXZX');
+    setField('vendorContact',
+      'Jafna Sakkeer, Deputy Manager &middot; 0484-2456875 &middot; univend.in@gmail.com');
+    setField('shipContact', 'Mob: +91 81290 99866');
+    setField('payTerms', '100% advance with order');
+    setField('delivery', '25.08.2026');
+    setField('dispatch', 'Road / courier');
+    setField('pos',      'Kerala (32)');
+    gstmode.value = 'intra';
+    fullRate = 18;
+    renderTaxRows();
+
+    tbody.innerHTML = '';
+    [
+      { d:'<strong>27510149 &ndash; IND235 Overlay</strong><br>Spare for Mettler Toledo weighing scale',
+        h:'8423', q:'1', u:'Nos', r:'4100.00' },
+      { d:'<strong>Service visit &ndash; IND215 Besco scale</strong><br>Calibration &amp; service support, per manday',
+        h:'998719', q:'1', u:'Manday', r:'5500.00' }
+    ].forEach(function(r){ tbody.appendChild(makeRow(r)); });
+    recalc(); save();
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener('input', function(e){
+    if(e.target.closest('.sheet')){ recalc(); save(); }
+  });
+  /* money fields settle to two decimals once the user leaves them */
+  document.addEventListener('blur', function(e){
+    var t = e.target;
+    if(t && t.matches && t.matches('.c-rate,[data-f="discount"],[data-f="freight"]')){
+      t.value = fmt(parseNum(t.value));
+      recalc(); save();
+    }
+  }, true);
+
+  document.getElementById('addRow').addEventListener('click', function(){ addRow(); save(); });
+  document.getElementById('sample').addEventListener('click', loadSample);
+  document.getElementById('print').addEventListener('click', function(){ window.print(); });
+  document.getElementById('clear').addEventListener('click', function(){
+    if(!confirm('Clear every field on this purchase order?')) return;
+    try{ localStorage.removeItem('pei-po'); }catch(e){}
+    location.reload();
+  });
+  gstmode.addEventListener('change', function(){ renderTaxRows(); recalc(); save(); });
+
+  /* keep pasted text plain inside editable cells */
+  document.addEventListener('paste', function(e){
+    var el = e.target;
+    if(el && el.isContentEditable){
+      e.preventDefault();
+      var txt = (e.clipboardData || window.clipboardData).getData('text');
+      document.execCommand('insertText', false, txt);
+    }
+  });
+
+  /* ---------- boot ---------- */
+  var stored = null;
+  try{ stored = JSON.parse(localStorage.getItem('pei-po')); }catch(e){}
+  if(!restore(stored)){
+    renderTaxRows();
+    addRow(); addRow();
+  }
+  recalc();
+})();
+</script>
+</body>
+</html>
