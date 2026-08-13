@@ -394,27 +394,35 @@ table.totals tr.grand .val{font-size:11.5pt}
   <header class="letterhead">
     <div class="lockup">
       <svg class="mark" viewBox="0 0 200 200" role="img" aria-label="Premier Exports International">
-        <g fill="none" stroke="currentColor" stroke-width="2.2">
-          <circle cx="100" cy="100" r="78"/>
+        <!-- globe wireframe: meridians as nested ellipses, parallels sagging
+             to a viewpoint just above the equator -->
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="100" cy="100" r="78" stroke-width="2.2"/>
           <ellipse cx="100" cy="100" rx="26" ry="78"/>
           <ellipse cx="100" cy="100" rx="52" ry="78"/>
-          <path d="M100 22 L100 178"/>
-          <path d="M22 100 L178 100"/>
-          <path d="M31.9 62 Q100 76 168.1 62"/>
-          <path d="M31.9 138 Q100 152 168.1 138"/>
-          <path d="M50.2 40 Q100 50 149.8 40"/>
-          <path d="M50.2 160 Q100 170 149.8 160"/>
+          <path d="M100 22 V178"/>
+          <path d="M22 100 H178"/>
+          <path d="M33 60 Q100 70 167 60"/>
+          <path d="M55.4 36 Q100 50 144.6 36"/>
+          <path d="M33 140 Q100 150 167 140"/>
+          <path d="M55.4 164 Q100 178 144.6 164"/>
         </g>
-        <path d="M22 78 C 60 62, 140 50, 178 44 L 164 67 L 178 90 C 140 96, 60 108, 22 124 Z"
-              fill="currentColor"/>
-        <g stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" fill="none">
-          <path d="M27 91 C 48 86, 70 81, 92 77"/>
-          <path d="M27 111 C 44 107, 60 103, 76 100"/>
+        <!-- banner: constant 36 thickness, gentle rise, bowed 6 to follow the
+             sphere, tail cut back on the diagonal so the tip sits top right -->
+        <path fill="currentColor" d="
+          M 18 85
+          C 52 93, 140 69, 182 61
+          L 172 97
+          C 140 105, 52 129, 18 121
+          Z"/>
+        <g stroke="#FFFFFF" stroke-width="3.2" fill="none">
+          <path d="M16 97 Q40 96.5 62 95.5"/>
+          <path d="M16 109 Q40 108.5 62 107.5"/>
         </g>
-        <g transform="rotate(-11 100 80)">
-          <text x="100" y="93" text-anchor="middle" fill="#FFFFFF"
+        <g transform="rotate(-8.5 110 95)">
+          <text x="110" y="106" text-anchor="middle" fill="#FFFFFF"
                 font-family="Helvetica Neue,Helvetica,Arial,sans-serif"
-                font-size="40" font-weight="700" font-style="italic"
+                font-size="31" font-weight="700" font-style="italic"
                 letter-spacing="1">PEI</text>
         </g>
       </svg>
@@ -424,10 +432,10 @@ table.totals tr.grand .val{font-size:11.5pt}
       </div>
     </div>
     <div class="lh-contact">
-      Chandiroor, Alappuzha &ndash; 688 537, Kerala, India<br>
-      Mob: +91 81290 99866<br>
-      premier.pei@gmail.com &nbsp;&middot;&nbsp; nazar.tk@hotmail.com<br>
-      <span class="gst">GSTIN <input class="f mono" data-f="buyerGstin" style="display:inline;width:auto;min-width:120px" placeholder="32XXXXXXXXXXXZX"></span>
+      AP X/453, NH-66 Highway, Chandiroor P.O.,<br>
+      Aroor, Alappuzha, Kerala - 688 537, India<br>
+      Mob: +91 81290 99866 &nbsp;&middot;&nbsp; premier.pei@gmail.com<br>
+      <span class="gst">GSTIN 32AADFP3158P1ZZ</span>
     </div>
   </header>
   <div class="brandrule"></div>
@@ -470,7 +478,8 @@ table.totals tr.grand .val{font-size:11.5pt}
       <h2>Deliver to</h2>
       <div class="body">
         <div class="f bold" contenteditable="true" data-f="shipName">Premier Exports International</div>
-        <div class="f" contenteditable="true" data-f="shipAddr">Chandiroor, Alappuzha &ndash; 688 537, Kerala, India</div>
+        <div class="f" contenteditable="true" data-f="shipAddr">AP X/453, NH-66 Highway, Chandiroor P.O.,<br>Aroor, Alappuzha, Kerala - 688 537, India</div>
+        <div class="f mono" contenteditable="true" data-f="shipGst">GSTIN 32AADFP3158P1ZZ</div>
         <div class="f" contenteditable="true" data-f="shipContact" data-ph="Site contact, phone"></div>
       </div>
     </section>
