@@ -1,5 +1,25 @@
 # Website
 
+## Stock statement
+
+[`stock-statement/index.html`](stock-statement/index.html) is the daily purchase
+and processing statement, rebuilt from the printed sheet. Open it in any browser.
+
+- One column of grades instead of two facing halves, grouped by brand with a
+  subtotal after each and a grand total at the foot.
+- **Closing slabs** and **stock value** are calculated, never typed, so they cannot
+  drift from the columns beside them:
+  `closing = opening + production − shipment`, `value = closing × rate per slab`.
+- A **rate per slab** column values the stock. Figures are grouped in the Indian
+  system and the headline reads in lakh/crore.
+- Summary tiles and a by-brand bar chart (slabs or value) sit above the table.
+- Grades holding no stock are greyed rather than left blank, so an empty cell
+  always means "not recorded" instead of "zero".
+- Prints to A4 over two pages with the column header repeated.
+
+The figures ship as recorded on 20/08/26; edits are kept in the browser, and
+**Reset to sheet** restores them.
+
 ## Purchase order
 
 [`purchase-order/index.html`](purchase-order/index.html) is a self-contained,
