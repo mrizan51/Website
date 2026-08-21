@@ -20,6 +20,38 @@ and processing statement, rebuilt from the printed sheet. Open it in any browser
 The figures ship as recorded on 20/08/26; edits are kept in the browser, and
 **Reset to sheet** restores them.
 
+### Daily register (Excel)
+
+[`stock-statement/PEI-Stock-Register.xlsx`](stock-statement/PEI-Stock-Register.xlsx)
+is the same stock as a working Excel model — four sheets, 348 live formulas.
+
+Opening balance is a **frozen baseline** (the position on 20/08/2026), never
+re-keyed. Each day's movements go in as dated rows on `Daily Entry`, and
+
+```
+Closing slabs = opening balance + production to date − shipment to date
+```
+
+so the register rolls itself forward. `Stock` also carries two "today" columns
+driven by the statement-date cell, which reproduce the paper sheet's *Day's
+Production* and *Shipment* columns. `Summary` totals by brand off `Stock`, so the
+two can never disagree. Enter a rate per slab (the yellow cells) to value it.
+
+`Daily Entry` ships holding the 14 production rows from 20/08/26, so `Stock`
+opens showing a closing position of 1,07,750 slabs — the total on the paper
+statement.
+
+Rebuild after changing the data or layout with:
+
+```
+python tools/build-stock-xlsx.py stock-statement/PEI-Stock-Register.xlsx
+python <xlsx-skill>/scripts/recalc.py stock-statement/PEI-Stock-Register.xlsx 180
+```
+
+The recalc step is not optional — openpyxl writes formulas without cached
+values, so an unrecalculated workbook reads as empty to pandas and most
+previewers.
+
 ## Purchase order
 
 [`purchase-order/index.html`](purchase-order/index.html) is a self-contained,
