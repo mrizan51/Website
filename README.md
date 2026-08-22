@@ -22,6 +22,22 @@ The figures ship as recorded on 20/08/26; edits are kept in the browser, and
 
 ### Daily register (Excel)
 
+The daily loop is four steps, and step 4 is the directors' PDF:
+
+1. On `Daily Entry`, add one row per product that moved — date, product from the
+   dropdown, slabs produced and/or shipped.
+2. On `Stock`, set **Statement date** to today.
+3. Open `Daily Report` — it has already rebuilt itself.
+4. **File ▸ Export ▸ Create PDF/XPS**, choose *Selected sheet*, and send it.
+   Excel writes the PDF; nothing else needs installing.
+
+`Daily Report` is a one-page A4 sheet carrying the letterhead, the day's
+headline figures, the position by brand, and a line for every product that moved
+that day — filtered by formula (`MATCH` against a rank column on `Stock`), not by
+hand. It prints 20 movement lines; if more moved, a note says how many are not
+shown rather than dropping them silently.
+
+
 [`stock-statement/PEI-Stock-Register.xlsx`](stock-statement/PEI-Stock-Register.xlsx)
 is the same stock as a working Excel model — four sheets, 348 live formulas.
 

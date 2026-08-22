@@ -1,99 +1,171 @@
 #!/usr/bin/env python3
-"""Builds PEI-Stock-Register.xlsx — a daily stock register driven by formulas.
+"""Builds PEI-Stock-Register.xlsx — a daily stock register driven by formulas,
+with a print-ready 'Daily Report' sheet for the directors.
 
-    python tools/build-stock-xlsx.py stock-statement/PEI-Stock-Register.xlsx
+    python tools/build-stock-xlsx.py out.xlsx                 # from the baseline below
+    python tools/build-stock-xlsx.py out.xlsx --from live.xlsx  # keep a live file's data
 
 Design note. The paper statement re-keys every opening balance each morning
 from yesterday's total, which is both tedious and the easiest place to make a
-mistake. Here the opening balance is a FROZEN baseline (the position recorded
-on 20/08/2026) and every later movement is a dated row in 'Daily Entry'.
-Closing = baseline + production to date - shipment to date, so the register
-rolls itself forward and nothing is ever re-typed.
+mistake. Here the opening balance is a FROZEN baseline and every later movement
+is a dated row on 'Daily Entry'. Closing = baseline + production to date −
+shipment to date, so the register rolls itself forward and nothing is re-typed.
+
+--from reads products, headings, the movement log and any rates out of an
+existing workbook, so the report sheet can be added to a file already in use
+without losing a day's work.
 """
-import sys
-from openpyxl import Workbook
+import sys, os, datetime
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.properties import PageSetupProperties
 from openpyxl.comments import Comment
-from openpyxl.formatting.rule import CellIsRule
+from openpyxl.formatting.rule import CellIsRule, FormulaRule
+from openpyxl.drawing.image import Image as XLImage
 
-OUT = sys.argv[1] if len(sys.argv) > 1 else 'PEI-Stock-Register.xlsx'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOGO = os.path.join(ROOT, 'stock-statement', 'assets', 'pei-mark.png')
 
-ENTRY_FIRST = 7      # first data row on 'Daily Entry'
-ENTRY_MAX = 5000     # how far the SUMIFS reach — roughly a year of entries
-ENTRY_FMT = 250      # how many rows are pre-ruled and ready to type into
+args = [a for a in sys.argv[1:] if not a.startswith('--')]
+OUT = args[0] if args else 'PEI-Stock-Register.xlsx'
+SRC = None
+if '--from' in sys.argv:
+    SRC = sys.argv[sys.argv.index('--from') + 1]
 
-# ---------------------------------------------------------------- source data
-# Opening balance = the "Opening Balance" column of the purchase & processing
-# statement dated 20/08/26. Production for that day is logged in 'Daily Entry',
-# so Closing reproduces the sheet's own "Total Slabs" column.
+ENTRY_FIRST, ENTRY_MAX, ENTRY_FMT = 7, 5000, 250
+MOVE_ROWS = 20                      # movement lines the daily report prints
+
+# ---------------------------------------------------------------- baseline
+BASE_DATE = datetime.date(2026, 8, 20)
 STOCK = [
-    ('Blue Dolphin', 'PD 100/200 P', 11459), ('Blue Dolphin', 'PD 100/200 K', 517),
-    ('Blue Dolphin', 'PUD 200/300 P', 2262), ('Blue Dolphin', 'PUD 200/300 K', 2835),
-    ('Blue Dolphin', 'PUD 300/500 P', 1673), ('Blue Dolphin', 'PUD 300/500 K', 7542),
-    ('Blue Dolphin', 'PD 200/300 P', 2357),
-    ('Primus PUD Japan', 'PUD 40/60 KZN', 64), ('Primus PUD Japan', 'PUD 60/80 KZN', 191),
-    ('Primus PUD Japan', 'PUD 80/120 P', 16849), ('Primus PUD Japan', 'PUD 80/120 KZN', 466),
-    ('Primus PUD Japan', 'PUD 80/120 N', 69), ('Primus PUD Japan', 'PUD 100/200 P', 2617),
-    ('Primus PUD Japan', 'PUD 100/200 N', 13), ('Primus PUD Japan', 'PUD 100/200 KZN', 4209),
-    ('Primus PUD Japan', 'PUD 200/300 P', 0), ('Primus PUD Japan', 'PUD 200/300 K', 2757),
-    ('Primus PUD Japan', 'PUD 200/300 KZN', 1080), ('Primus PUD Japan', 'PUD 300/500 P', 421),
-    ('Primus PUD Japan', 'PUD 300/500 K', 580),
+    ('Blue Dolphin', 'PD PVN 100/200', 11459), ('Blue Dolphin', 'PD KKD 100/200', 517),
+    ('Blue Dolphin', 'PUD PVN 200/300', 2262), ('Blue Dolphin', 'PUD KKD 200/300', 2835),
+    ('Blue Dolphin', 'PUD PVN 300/500', 1673), ('Blue Dolphin', 'PUD KKD 300/500', 7542),
+    ('Blue Dolphin', 'PD PVN 200/300', 2357),
+    ('Primus Japan', 'PUD KZN 40/60', 64), ('Primus Japan', 'PUD KZN 60/80', 191),
+    ('Primus Japan', 'PUD PVN 80/120', 16849), ('Primus Japan', 'PUD KZN 80/120', 466),
+    ('Primus Japan', 'PUD NRN 80/120', 69), ('Primus Japan', 'PUD PVN 100/200', 2617),
+    ('Primus Japan', 'PUD NRN 100/200', 13), ('Primus Japan', 'PUD KZN 100/200', 4209),
+    ('Primus Japan', 'PUD PVN 200/300', 0), ('Primus Japan', 'PUD KKD 200/300', 2757),
+    ('Primus Japan', 'PUD KZN 200/300', 1080), ('Primus Japan', 'PUD PVN 300/500', 421),
+    ('Primus Japan', 'PUD KKD 300/500', 580),
     ('Primus EU', 'PUD 20/40', 185), ('Primus EU', 'PUD 40/60', 368),
     ('Primus EU', 'PUD 60/80', 380), ('Primus EU', 'PUD 80/120', 1151),
     ('Primus EU', 'PUD 100/200', 3797), ('Primus EU', 'PUD 200/300', 4118),
     ('Primus EU', 'PUD 300/500', 1490), ('Primus EU', 'BKN', 15130),
-    ('AMF Brand', 'PD 100/200 P', 0), ('AMF Brand', 'PD 100/200 K', 0),
-    ('AMF Brand', 'PUD 200/300 P', 1516), ('AMF Brand', 'PUD 200/300 K', 0),
-    ('AMF Brand', 'PUD 300/500 P', 18), ('AMF Brand', 'PUD 300/500 K', 0),
-    ('THT Brand PUD PVN', '80/120', 1389), ('THT Brand PUD PVN', '100/200', 7055),
-    ('THT Brand PUD PVN', '200/300', 4682),
+    ('AMF Brand', 'PD PVN 100/200', 0), ('AMF Brand', 'PD KKD 100/200', 0),
+    ('AMF Brand', 'PUD PVN 200/300', 1516), ('AMF Brand', 'PUD KKD 200/300', 0),
+    ('AMF Brand', 'PUD PVN 300/500', 18), ('AMF Brand', 'PUD KKD 300/500', 0),
+    ('THT Brand', 'PUD PVN 80/120', 1389), ('THT Brand', 'PUD PVN 100/200', 7055),
+    ('THT Brand', 'PUD PVN 200/300', 4682),
     ('Deepsea', '300/500', 670),
-    ('China PUD', '300/500 P', 451), ('China PUD', '300/500 K', 188),
-    ('China PUD', '500/800 P', 401), ('China PUD', '500/800 K', 1920),
+    ('China', 'PUD PVN 300/500', 451), ('China', 'PUD KKD 300/500', 188),
+    ('China', 'PUD PVN 500/800', 401), ('China', 'PUD KKD 500/800', 1920),
 ]
-# Day's production recorded on the 20/08/26 statement
-DAY1 = '20/08/2026'
-ENTRIES = [
-    ('Blue Dolphin', 'PD 100/200 P', 1068), ('Blue Dolphin', 'PD 100/200 K', 65),
-    ('Blue Dolphin', 'PUD 200/300 P', 267),
-    ('Primus PUD Japan', 'PUD 40/60 KZN', 29), ('Primus PUD Japan', 'PUD 60/80 KZN', 39),
-    ('Primus PUD Japan', 'PUD 80/120 KZN', 50), ('Primus PUD Japan', 'PUD 80/120 N', 3),
-    ('Primus PUD Japan', 'PUD 100/200 KZN', 50), ('Primus PUD Japan', 'PUD 200/300 KZN', 33),
-    ('Primus PUD Japan', 'PUD 300/500 P', 156), ('Primus PUD Japan', 'PUD 300/500 K', 596),
-    ('Primus EU', 'BKN', 52),
-    ('THT Brand PUD PVN', '80/120', 1872), ('THT Brand PUD PVN', '100/200', 600),
-]
+LOG = [(BASE_DATE, 'Blue Dolphin - PD PVN 100/200', 1068, 0, "Day's production per statement 20/08/26"),
+       (BASE_DATE, 'Blue Dolphin - PD KKD 100/200', 65, 0, ''),
+       (BASE_DATE, 'Blue Dolphin - PUD PVN 200/300', 267, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD KZN 40/60', 29, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD KZN 60/80', 39, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD KZN 80/120', 50, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD NRN 80/120', 3, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD KZN 100/200', 50, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD KZN 200/300', 33, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD PVN 300/500', 156, 0, ''),
+       (BASE_DATE, 'Primus Japan - PUD KKD 300/500', 596, 0, ''),
+       (BASE_DATE, 'Primus EU - BKN', 52, 0, ''),
+       (BASE_DATE, 'THT Brand - PUD PVN 80/120', 1872, 0, ''),
+       (BASE_DATE, 'THT Brand - PUD PVN 100/200', 600, 0, '')]
+RATES = {}
+EXTRA_BRANDS = ['Shrimp Whole 5x3kgs']       # tracked, no stock held
+STMT_DATE = BASE_DATE
+
+# ---------------------------------------------------------------- --from
+def as_date(v):
+    """Log dates must be real dates: a text date never matches a date criterion
+    in SUMIFS, which silently zeroes the two 'today' columns."""
+    if isinstance(v, datetime.datetime):
+        return v.date()
+    if isinstance(v, datetime.date):
+        return v
+    for fmt in ('%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%y'):
+        try:
+            return datetime.datetime.strptime(str(v).strip(), fmt).date()
+        except (ValueError, TypeError):
+            pass
+    return None
+
+if SRC:
+    src = load_workbook(SRC)
+    s_st, s_de, s_sm = src['Stock'], src['Daily Entry'], src['Summary']
+    STOCK, RATES = [], {}
+    r = 8
+    while s_st[f'A{r}'].value and s_st[f'A{r}'].value != 'GRAND TOTAL':
+        a, b, c = s_st[f'A{r}'].value, s_st[f'B{r}'].value, s_st[f'C{r}'].value
+        STOCK.append((a, b, c if isinstance(c, (int, float)) else 0))
+        rate = s_st[f'I{r}'].value
+        if isinstance(rate, (int, float)) and rate:
+            RATES[f'{a} - {b}'] = rate
+        r += 1
+    LOG, skipped = [], 0
+    for r in range(ENTRY_FIRST, s_de.max_row + 1):
+        item = s_de[f'B{r}'].value
+        if not item:
+            continue
+        d = as_date(s_de[f'A{r}'].value)
+        if d is None:
+            skipped += 1
+            continue
+        LOG.append((d, item, s_de[f'C{r}'].value or 0, s_de[f'D{r}'].value or 0,
+                    s_de[f'E{r}'].value or ''))
+    # Brands listed on Summary but holding no stock. Stop at GRAND TOTAL:
+    # the explanatory footnote sits below it and is not a brand.
+    EXTRA_BRANDS = []
+    seen = {b for b, _, _ in STOCK}
+    stop = s_sm.max_row + 1
+    for rr in range(9, s_sm.max_row + 1):
+        if s_sm[f'A{rr}'].value == 'GRAND TOTAL':
+            stop = rr
+            break
+    for rr in range(9, stop):
+        v = s_sm[f'A{rr}'].value
+        if v and v not in seen:
+            EXTRA_BRANDS.append(v)
+            seen.add(v)
+    STMT_DATE = as_date(s_st['C3'].value) or BASE_DATE
+    print(f'read {SRC}: {len(STOCK)} products, {len(LOG)} log rows, '
+          f'{len(RATES)} rates' + (f', {skipped} rows skipped (unreadable date)' if skipped else ''))
+
 BRANDS = []
 for b, _, _ in STOCK:
     if b not in BRANDS:
         BRANDS.append(b)
-BRANDS.append('Shrimp Whole 5x3kgs')      # tracked on the sheet, no stock held
+BRANDS += [b for b in EXTRA_BRANDS if b not in BRANDS]
 
 # ---------------------------------------------------------------- style
 FONT = 'Arial'
 DEEP, BAND, WASH, LINE = '065E7A', 'E7F3F9', 'F2F8FB', 'CBDFE8'
-INK, MUTED = '0B2C3A', '5E7C8B'
-BLUE_IN = '0000FF'          # hardcoded input
-YELLOW = 'FFFF00'           # fill this in
+INK, MUTED, BRAND_C = '0B2C3A', '5E7C8B', '00A2D3'
+BLUE_IN, YELLOW = '0000FF', 'FFFF00'
 
 thin = Side(style='thin', color=LINE)
 box = Border(left=thin, right=thin, top=thin, bottom=thin)
+under = Border(bottom=thin)
 
-# Indian grouping (lakh / crore). Two conditions plus a default is the maximum.
 N_IND = r'[>=10000000]##\,##\,##\,##0;[>=100000]##\,##\,##0;#,##0'
-N_DASH = r'#,##0;-#,##0;"–"'                       # small movements; 0 reads as –
+N_DASH = r'#,##0;-#,##0;"–"'
 CUR_IND = r'[>=10000000]"₹" ##\,##\,##\,##0.00;[>=100000]"₹" ##\,##\,##0.00;"₹" #,##0.00'
-RATE = r'#,##0.00'
+RATE_F = r'#,##0.00'
+DATE_F = 'DD/MM/YYYY'
 
-def head(ws, row, cols, widths=None):
+def head(ws, row, cols, widths=None, align_from=3):
     for i, t in enumerate(cols, start=1):
         c = ws.cell(row=row, column=i, value=t)
         c.font = Font(name=FONT, size=9, bold=True, color='FFFFFF')
         c.fill = PatternFill('solid', fgColor=DEEP)
-        c.alignment = Alignment(horizontal='right' if i > 2 else 'left',
+        c.alignment = Alignment(horizontal='right' if i >= align_from else 'left',
                                 vertical='bottom', wrap_text=True)
         c.border = box
     ws.row_dimensions[row].height = 30
@@ -115,36 +187,40 @@ rm.title = 'Read me'
 title_block(rm, 'STOCK REGISTER — HOW IT WORKS')
 rm.column_dimensions['A'].width = 2
 rm.column_dimensions['B'].width = 108
-
 lines = [
-    ('h', 'The daily routine'),
-    ('p', "After each day's production, open 'Daily Entry' and add one row per grade that moved."),
-    ('p', 'Pick the item from the dropdown, type the date, and enter slabs produced and/or shipped.'),
-    ('p', "That is the whole job — 'Stock' and 'Summary' update themselves."),
+    ('h', 'Every day, in one minute'),
+    ('p', "1.  Open 'Daily Entry' and add one row per product that moved."),
+    ('p', '2.  Type the date, pick the product from the dropdown, enter slabs produced and/or shipped.'),
+    ('p', "3.  On 'Stock', set the Statement date to today."),
+    ('p', "4.  Open 'Daily Report' and save it as PDF — that is the directors' copy."),
+    ('n', ''),
+    ('h', 'Sending the report'),
+    ('p', "'Daily Report' is already sized to one A4 page. In Excel: File ▸ Export ▸ Create PDF/XPS"),
+    ('p', '(or File ▸ Save a Copy and choose PDF), pick "Selected sheet", and send that file.'),
+    ('p', 'Nothing else needs installing — Excel writes the PDF itself.'),
     ('n', ''),
     ('h', 'Why you never re-type an opening balance'),
-    ('p', 'Opening balance is a fixed baseline: the position recorded on 20/08/2026.'),
-    ('p', 'Closing slabs = opening balance + production to date − shipment to date,'),
-    ('p', "counted from every row in 'Daily Entry'. So the register rolls forward on its own,"),
-    ('p', "and yesterday's closing is today's starting point without anyone copying a number."),
+    ('p', 'Opening balance is a fixed baseline, not a daily figure.'),
+    ('p', 'Closing balance = opening balance + production to date − shipment to date,'),
+    ('p', "counted from every row on 'Daily Entry'. The register rolls forward on its own,"),
+    ('p', "so yesterday's closing is today's starting point without anyone copying a number."),
     ('n', ''),
     ('h', 'Which cells you edit'),
     ('b', "Blue figures — typed by you. Opening balance on 'Stock'; everything on 'Daily Entry'."),
-    ('y', 'Yellow cells — rate per slab. Fill these in to value the stock.'),
+    ('y', 'Yellow cells — the statement date, and rate per slab. Fill the rates in to value the stock.'),
     ('k', 'Black figures — calculated. Do not type over them, or the sheet stops adding up.'),
-    ('g', 'Grey — the Key column, which links a stock row to its entries. Leave it alone.'),
+    ('g', 'Grey — Key, Moved today and Rank. Machinery for the dropdown and the report. Leave alone.'),
     ('n', ''),
-    ('h', 'A worked entry'),
-    ('p', "'Daily Entry' already holds the production recorded on 20/08/2026 — 14 rows,"),
-    ('p', "4,880 slabs. Copy the shape of those rows. With them, 'Stock' shows a closing"),
-    ('p', 'position of 1,07,750 slabs, which is the total on the paper statement.'),
+    ('h', 'Dates must be real dates'),
+    ('p', 'Type 21/08/2026, not text. A date stored as text never matches the Statement date,'),
+    ('p', "and the two 'today' columns would quietly read zero."),
     ('n', ''),
-    ('h', 'Adding a grade'),
-    ('p', "Add the row at the bottom of 'Stock' (brand, grade, opening balance), then copy the"),
+    ('h', 'Adding a product'),
+    ('p', "Add the row at the bottom of 'Stock' (brand, product, opening balance), then copy the"),
     ('p', 'formulas down from the row above. The dropdown picks it up automatically.'),
     ('n', ''),
     ('h', 'Source'),
-    ('p', 'Opening balances and the 20/08 production are taken from the purchase & processing'),
+    ('p', 'Opening balances and the first day of production come from the purchase & processing'),
     ('p', 'statement dated 20/08/26, supplied by Premier Exports International.'),
 ]
 r = 4
@@ -162,7 +238,6 @@ for kind, text in lines:
     else:
         c.font = Font(name=FONT, size=10, color=INK)
     r += 1
-
 rm.print_area = f'A1:B{r}'
 rm.page_setup.fitToWidth = 1
 rm.page_setup.fitToHeight = 0
@@ -173,58 +248,63 @@ st = wb.create_sheet('Stock')
 title_block(st, 'STOCK REGISTER — LIVE POSITION')
 st['A3'] = 'Statement date'
 st['A3'].font = Font(name=FONT, size=10, bold=True, color=INK)
-st['C3'] = DAY1
+st['C3'] = STMT_DATE
 st['C3'].font = Font(name=FONT, size=10, bold=True, color=BLUE_IN)
 st['C3'].fill = PatternFill('solid', fgColor=YELLOW)
 st['C3'].border = box
+st['C3'].number_format = DATE_F
 st['C3'].alignment = Alignment(horizontal='center')
-st['D3'] = "← set this to drive the two \"today\" columns"
+st['D3'] = "← set to today; drives the two \"today\" columns and the Daily Report"
 st['D3'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
-st['A5'] = ("Opening balance is the frozen baseline of 20/08/2026 — never re-key it. "
+st['A5'] = ("Opening balance is a frozen baseline — never re-key it. "
             "Closing follows from the dated rows on 'Daily Entry'.")
 st['A5'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
 
 HDR = 7
 head(st, HDR,
-     ['Brand', 'Count / grade', 'Opening balance', "Today's production", "Today's shipment",
-      'Production to date', 'Shipment to date', 'Closing slabs', 'Rate / slab (₹)',
-      'Stock value (₹)', '', 'Key (do not edit)'],
-     [22, 18, 14, 13, 13, 13, 13, 13, 12, 17, 2, 34])
+     ['Brand', 'Product', 'Opening Balance', "Today's Production", "Today's Shipment",
+      'Production to Date', 'Shipment to Date', 'Closing Balance', 'Rate / Slab (₹)',
+      'Stock Value (₹)', '', 'Key (do not edit)', 'Moved today', 'Rank'],
+     [22, 22, 14, 13, 13, 13, 13, 13, 12, 17, 2, 34, 11, 7])
 st.cell(row=HDR, column=11).fill = PatternFill('solid', fgColor='FFFFFF')
-kc = st.cell(row=HDR, column=12)
-kc.fill = PatternFill('solid', fgColor='D9D9D9')
-kc.font = Font(name=FONT, size=9, bold=True, color=MUTED)
+for col in (12, 13, 14):
+    c = st.cell(row=HDR, column=col)
+    c.fill = PatternFill('solid', fgColor='D9D9D9')
+    c.font = Font(name=FONT, size=9, bold=True, color=MUTED)
 
 st.cell(row=HDR, column=3).comment = Comment(
-    'Position recorded on the purchase & processing statement of 20/08/26.\n'
-    'This is a fixed baseline — do not update it daily. Closing slabs is\n'
-    'derived from it plus the Daily Entry log.', 'Premier Exports International', height=90, width=340)
+    'The position this register starts from. A fixed baseline — do not update\n'
+    'it daily. Closing Balance is derived from it plus the Daily Entry log.',
+    'Premier Exports International', height=80, width=340)
 
 first = HDR + 1
-for i, (brand, grade, ob) in enumerate(STOCK):
+ent = lambda col: f"'Daily Entry'!${col}${ENTRY_FIRST}:${col}${ENTRY_MAX}"
+for i, (brand, product, ob) in enumerate(STOCK):
     r = first + i
     st.cell(row=r, column=1, value=brand).font = Font(name=FONT, size=10, color=INK)
-    st.cell(row=r, column=2, value=grade).font = Font(name=FONT, size=10, color=INK)
-
-    c = st.cell(row=r, column=3, value=ob)                       # input
+    st.cell(row=r, column=2, value=product).font = Font(name=FONT, size=10, color=INK)
+    c = st.cell(row=r, column=3, value=ob)
     c.font = Font(name=FONT, size=10, color=BLUE_IN)
     c.number_format = N_IND
 
-    ent = lambda col: f"'Daily Entry'!${col}${ENTRY_FIRST}:${col}${ENTRY_MAX}"
-    st.cell(row=r, column=4,
-            value=f"=SUMIFS({ent('C')},{ent('B')},$L{r},{ent('A')},$C$3)")
-    st.cell(row=r, column=5,
-            value=f"=SUMIFS({ent('D')},{ent('B')},$L{r},{ent('A')},$C$3)")
+    st.cell(row=r, column=4, value=f"=SUMIFS({ent('C')},{ent('B')},$L{r},{ent('A')},$C$3)")
+    st.cell(row=r, column=5, value=f"=SUMIFS({ent('D')},{ent('B')},$L{r},{ent('A')},$C$3)")
     st.cell(row=r, column=6, value=f"=SUMIFS({ent('C')},{ent('B')},$L{r})")
     st.cell(row=r, column=7, value=f"=SUMIFS({ent('D')},{ent('B')},$L{r})")
     st.cell(row=r, column=8, value=f'=$C{r}+$F{r}-$G{r}')
-    rate = st.cell(row=r, column=9)                              # fill in
+    rate = st.cell(row=r, column=9)
     rate.fill = PatternFill('solid', fgColor=YELLOW)
-    rate.number_format = RATE
+    rate.number_format = RATE_F
     rate.font = Font(name=FONT, size=10, color=BLUE_IN)
+    key = f'{brand} - {product}'
+    if key in RATES:
+        rate.value = RATES[key]
     st.cell(row=r, column=10, value=f'=IF($I{r}="","",$H{r}*$I{r})').number_format = CUR_IND
-    k = st.cell(row=r, column=12, value=f'=$A{r}&" - "&$B{r}')
-    k.font = Font(name=FONT, size=9, color=MUTED)
+    for col, val in ((12, f'=$A{r}&" - "&$B{r}'),
+                     (13, f'=IF(OR($D{r}<>0,$E{r}<>0),1,0)'),
+                     (14, f'=IF($M{r}=1,SUM($M${first}:$M{r}),"")')):
+        h = st.cell(row=r, column=col, value=val)
+        h.font = Font(name=FONT, size=9, color=MUTED)
 
     for col in (4, 5):
         st.cell(row=r, column=col).number_format = N_DASH
@@ -233,42 +313,37 @@ for i, (brand, grade, ob) in enumerate(STOCK):
     for col in range(1, 11):
         cell = st.cell(row=r, column=col)
         cell.border = box
-        if cell.font.color is None or col in (4, 5, 6, 7, 8, 10):
-            cell.font = Font(name=FONT, size=10, color=INK,
-                             bold=(col == 8))
-        if i % 2 and col != 9:            # leave the yellow rate cells alone
+        if col in (4, 5, 6, 7, 8, 10):
+            cell.font = Font(name=FONT, size=10, color=INK, bold=(col == 8))
+        if i % 2 and col != 9:
             cell.fill = PatternFill('solid', fgColor=WASH)
 
 last = first + len(STOCK) - 1
 tot = last + 1
-st.cell(row=tot, column=1, value='GRAND TOTAL').font = Font(name=FONT, size=10, bold=True, color='FFFFFF')
+st.cell(row=tot, column=1, value='GRAND TOTAL')
 for col in range(1, 11):
     c = st.cell(row=tot, column=col)
     c.fill = PatternFill('solid', fgColor=DEEP)
     c.border = box
-    if col >= 3:
-        c.font = Font(name=FONT, size=10, bold=True, color='FFFFFF')
-        if col != 9:
-            L = get_column_letter(col)
-            rng = f'{L}{first}:{L}{last}'
-            c.value = (f'=IF(SUM({rng})=0,"",SUM({rng}))' if col == 10
-                       else f'=SUM({rng})')
-            c.number_format = CUR_IND if col == 10 else (N_DASH if col in (4, 5) else N_IND)
+    c.font = Font(name=FONT, size=10, bold=True, color='FFFFFF')
+    if col >= 3 and col != 9:
+        L = get_column_letter(col)
+        rng = f'{L}{first}:{L}{last}'
+        c.value = f'=IF(SUM({rng})=0,"",SUM({rng}))' if col == 10 else f'=SUM({rng})'
+        c.number_format = CUR_IND if col == 10 else (N_DASH if col in (4, 5) else N_IND)
 
 st.cell(row=tot + 2, column=1,
-        value='Closing slabs = opening balance + production to date − shipment to date        '
-              'Stock value = closing slabs × rate per slab').font = \
+        value='Closing Balance = Opening Balance + Production to Date − Shipment to Date        '
+              'Stock Value = Closing Balance × Rate per Slab').font = \
     Font(name=FONT, size=9, italic=True, color=MUTED)
 
 st.freeze_panes = f'C{first}'
 st.auto_filter.ref = f'A{HDR}:J{last}'
-# a negative closing means more was shipped than held — flag it loudly
 st.conditional_formatting.add(
     f'H{first}:H{last}',
     CellIsRule(operator='lessThan', formula=['0'],
                fill=PatternFill('solid', fgColor='F8D7DA'),
                font=Font(name=FONT, size=10, bold=True, color='B3261E')))
-
 st.print_area = f'A1:J{tot}'
 st.print_title_rows = f'{HDR}:{HDR}'
 st.page_setup.orientation = 'portrait'
@@ -278,60 +353,71 @@ st.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
 
 # ================================================================ Daily Entry
 de = wb.create_sheet('Daily Entry')
-title_block(de, 'DAILY ENTRY — ADD ONE ROW PER GRADE THAT MOVED')
-de['A4'] = ("After production, add a row below: date, item from the dropdown, slabs produced "
+title_block(de, 'DAILY ENTRY — ADD ONE ROW PER PRODUCT THAT MOVED')
+de['A4'] = ("After production, add a row below: date, product from the dropdown, slabs produced "
             "and/or shipped. Never delete past rows — they are what the closing position is built from.")
 de['A4'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
 
 DH = 6
 head(de, DH, ['Date', 'Item (pick from list)', 'Production (slabs)', 'Shipment (slabs)', 'Note'],
-     [14, 40, 16, 16, 40])
-de.cell(row=DH, column=1).alignment = Alignment(horizontal='left', wrap_text=True)
-de.cell(row=DH, column=2).alignment = Alignment(horizontal='left', wrap_text=True)
-de.cell(row=DH, column=5).alignment = Alignment(horizontal='left', wrap_text=True)
+     [14, 40, 16, 16, 40], align_from=3)
+for col in (1, 2, 5):
+    de.cell(row=DH, column=col).alignment = Alignment(horizontal='left', wrap_text=True)
 
 er = DH + 1
-for brand, grade, qty in ENTRIES:
-    de.cell(row=er, column=1, value=DAY1).font = Font(name=FONT, size=10, color=BLUE_IN)
-    de.cell(row=er, column=2, value=f'{brand} - {grade}').font = Font(name=FONT, size=10, color=BLUE_IN)
-    c = de.cell(row=er, column=3, value=qty)
-    c.font = Font(name=FONT, size=10, color=BLUE_IN)
-    c.number_format = N_DASH
-    s = de.cell(row=er, column=4)
-    s.font = Font(name=FONT, size=10, color=BLUE_IN)
-    s.number_format = N_DASH
-    de.cell(row=er, column=5,
-            value="Day's production per statement 20/08/26" if er == DH + 1 else '')\
-        .font = Font(name=FONT, size=9, italic=True, color=MUTED)
+for d, item, prod, ship, note in LOG:
+    dc = de.cell(row=er, column=1, value=d)
+    dc.number_format = DATE_F
+    dc.font = Font(name=FONT, size=10, color=BLUE_IN)
+    de.cell(row=er, column=2, value=item).font = Font(name=FONT, size=10, color=BLUE_IN)
+    for col, v in ((3, prod), (4, ship)):
+        c = de.cell(row=er, column=col, value=v)
+        c.font = Font(name=FONT, size=10, color=BLUE_IN)
+        c.number_format = N_DASH
+    de.cell(row=er, column=5, value=note).font = Font(name=FONT, size=9, italic=True, color=MUTED)
     for col in range(1, 6):
         de.cell(row=er, column=col).border = box
     er += 1
 
-LAST_ENTRY_ROW = ENTRY_FMT
-for r in range(er, LAST_ENTRY_ROW + 1):
+for r in range(er, ENTRY_FMT + 1):
     for col in range(1, 6):
         cell = de.cell(row=r, column=col)
         cell.border = box
         cell.font = Font(name=FONT, size=10, color=BLUE_IN)
+    de.cell(row=r, column=1).number_format = DATE_F
     de.cell(row=r, column=3).number_format = N_DASH
     de.cell(row=r, column=4).number_format = N_DASH
 
-dv_item = DataValidation(type='list', formula1=f'=Stock!$L${first}:$L${last}',
-                         allow_blank=True, showDropDown=False)
-dv_item.error = 'Pick an item from the dropdown so the entry reaches the Stock sheet.'
-dv_item.errorTitle = 'Unknown item'
+dv_item = DataValidation(type='list', formula1=f'=Stock!$L${first}:$L${last}', allow_blank=True)
+dv_item.error = 'Pick a product from the dropdown so the entry reaches the Stock sheet.'
+dv_item.errorTitle = 'Unknown product'
 de.add_data_validation(dv_item)
 dv_item.add(f'B{DH+1}:B{ENTRY_MAX}')
 
-dv_qty = DataValidation(type='decimal', operator='greaterThanOrEqual', formula1='0',
-                        allow_blank=True)
+dv_qty = DataValidation(type='decimal', operator='greaterThanOrEqual', formula1='0', allow_blank=True)
 dv_qty.error = 'Slabs cannot be negative. Record a despatch in the Shipment column.'
 dv_qty.errorTitle = 'Negative quantity'
 de.add_data_validation(dv_qty)
 dv_qty.add(f'C{DH+1}:D{ENTRY_MAX}')
 
+dv_date = DataValidation(type='date', operator='greaterThan', formula1='DATE(2000,1,1)', allow_blank=True)
+dv_date.error = 'Enter a real date such as 21/08/2026, not text.'
+dv_date.errorTitle = 'Date required'
+de.add_data_validation(dv_date)
+dv_date.add(f'A{DH+1}:A{ENTRY_MAX}')
+
+de['G4'] = 'Rows that will not reach Stock:'
+de['G4'].font = Font(name=FONT, size=9, bold=True, color=MUTED)
+de['J4'] = (f'=SUMPRODUCT((B{DH+1}:B{ENTRY_MAX}<>"")*'
+            f'(COUNTIF(Stock!$L${first}:$L${last},B{DH+1}:B{ENTRY_MAX})=0))')
+de['J4'].font = Font(name=FONT, size=10, bold=True, color='B3261E')
+de['K4'] = '← must stay at 0; anything else is a mistyped product'
+de['K4'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
+de.column_dimensions['G'].width = 24
+de.column_dimensions['J'].width = 6
+
 de.freeze_panes = f'A{DH+1}'
-de.auto_filter.ref = f'A{DH}:E{LAST_ENTRY_ROW}'
+de.auto_filter.ref = f'A{DH}:E{ENTRY_FMT}'
 de.print_title_rows = f'{DH}:{DH}'
 de.page_setup.fitToWidth = 1
 de.page_setup.fitToHeight = 0
@@ -340,16 +426,14 @@ de.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
 # ================================================================ Summary
 sm = wb.create_sheet('Summary')
 title_block(sm, 'SUMMARY BY BRAND')
-
-sm['A4'] = 'Closing stock'
+sm['A4'] = 'Closing Stock'
 sm['A4'].font = Font(name=FONT, size=9, bold=True, color=MUTED)
 sm['A5'] = f'=Stock!$H${tot}'
 sm['A5'].font = Font(name=FONT, size=16, bold=True, color=DEEP)
 sm['A5'].number_format = N_IND
 sm['A6'] = 'slabs'
 sm['A6'].font = Font(name=FONT, size=9, color=MUTED)
-
-sm['C4'] = 'Stock value'
+sm['C4'] = 'Stock Value'
 sm['C4'].font = Font(name=FONT, size=9, bold=True, color=MUTED)
 sm['C5'] = f'=IF(Stock!$J${tot}="","—",Stock!$J${tot})'
 sm['C5'].font = Font(name=FONT, size=16, bold=True, color=DEEP)
@@ -358,18 +442,17 @@ sm['C6'] = 'at the rates entered on Stock'
 sm['C6'].font = Font(name=FONT, size=9, color=MUTED)
 
 SH = 8
-head(sm, SH, ['Brand', 'Opening balance', "Today's production", "Today's shipment",
-              'Closing slabs', 'Stock value (₹)'], [24, 15, 15, 15, 14, 18])
+head(sm, SH, ['Brand', 'Opening Balance', "Today's Production", "Today's Shipment",
+              'Closing Balance', 'Stock Value (₹)'], [24, 15, 15, 15, 14, 18], align_from=2)
 sr = SH + 1
 for i, b in enumerate(BRANDS):
     r = sr + i
     sm.cell(row=r, column=1, value=b).font = Font(name=FONT, size=10, color=INK)
-    for col, src in ((2, 'C'), (3, 'D'), (4, 'E'), (5, 'H'), (6, 'J')):
+    for col, src_col in ((2, 'C'), (3, 'D'), (4, 'E'), (5, 'H'), (6, 'J')):
         rng = (f'Stock!$A${first}:$A${last},$A{r},'
-               f'Stock!${src}${first}:${src}${last}')
+               f'Stock!${src_col}${first}:${src_col}${last}')
         c = sm.cell(row=r, column=col,
-                    value=(f'=IF(SUMIF({rng})=0,"",SUMIF({rng}))' if col == 6
-                           else f'=SUMIF({rng})'))
+                    value=(f'=IF(SUMIF({rng})=0,"",SUMIF({rng}))' if col == 6 else f'=SUMIF({rng})'))
         c.number_format = CUR_IND if col == 6 else (N_DASH if col in (3, 4) else N_IND)
         c.font = Font(name=FONT, size=10, color=INK, bold=(col == 5))
     for col in range(1, 7):
@@ -389,20 +472,222 @@ for col in range(1, 7):
     if col > 1:
         L = get_column_letter(col)
         rng = f'{L}{sr}:{L}{slast}'
-        c.value = (f'=IF(SUM({rng})=0,"",SUM({rng}))' if col == 6 else f'=SUM({rng})')
+        c.value = f'=IF(SUM({rng})=0,"",SUM({rng}))' if col == 6 else f'=SUM({rng})'
         c.number_format = CUR_IND if col == 6 else (N_DASH if col in (3, 4) else N_IND)
 
 sm.cell(row=stot + 2, column=1,
         value="Brand totals read straight off 'Stock', so they can never disagree with it.")\
     .font = Font(name=FONT, size=9, italic=True, color=MUTED)
-
 sm.print_area = f'A1:F{stot}'
 sm.page_setup.fitToWidth = 1
 sm.page_setup.fitToHeight = 0
 sm.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
 
-wb.active = wb.index(st)
+# ================================================================ Daily Report
+dr = wb.create_sheet('Daily Report')
+for col, w in zip('ABCDEF', (23, 24, 15, 15, 16, 19)):
+    dr.column_dimensions[col].width = w
+dr.column_dimensions['G'].width = 2
+dr.column_dimensions['H'].width = 6      # match helper, outside the print area
+
+dr.row_dimensions[1].height = 34
+dr.row_dimensions[2].height = 14
+dr.row_dimensions[3].height = 13
+if os.path.exists(LOGO):
+    img = XLImage(LOGO)
+    img.height, img.width = 42, 52
+    dr.add_image(img, 'A1')
+
+dr['B1'] = 'Premier Exports International'
+dr['B1'].font = Font(name=FONT, size=17, color=BRAND_C)
+dr['B1'].alignment = Alignment(vertical='center')
+for i, t in enumerate(['AP X/453, NH-66 Highway, Chandiroor P.O.,',
+                       'Aroor, Alappuzha, Kerala - 688 537, India',
+                       'GSTIN 32AADFP3158P1ZZ']):
+    c = dr.cell(row=1 + i, column=6, value=t)
+    c.font = Font(name=FONT, size=8, color=MUTED)
+    c.alignment = Alignment(horizontal='right', vertical='center')
+dr.merge_cells('E1:F1'); dr.merge_cells('E2:F2'); dr.merge_cells('E3:F3')
+for i in range(3):
+    dr.cell(row=1 + i, column=5).alignment = Alignment(horizontal='right', vertical='center')
+    dr.cell(row=1 + i, column=5).font = Font(name=FONT, size=8, color=MUTED)
+dr['E1'] = 'AP X/453, NH-66 Highway, Chandiroor P.O.,'
+dr['E2'] = 'Aroor, Alappuzha, Kerala - 688 537, India'
+dr['E3'] = 'GSTIN 32AADFP3158P1ZZ'
+
+dr.row_dimensions[4].height = 5
+for col in range(1, 7):
+    dr.cell(row=4, column=col).border = Border(
+        bottom=Side(style='medium', color=BRAND_C))
+
+dr.row_dimensions[5].height = 26
+dr['A5'] = 'DAILY STOCK REPORT'
+dr['A5'].font = Font(name=FONT, size=17, bold=True, color=INK)
+dr['A5'].alignment = Alignment(vertical='center')
+dr['A6'] = 'PURCHASE & PROCESSING · PRODUCTION'
+dr['A6'].font = Font(name=FONT, size=8, bold=True, color=MUTED)
+dr.merge_cells('E5:F5')
+dr['E5'] = '=Stock!$C$3'
+dr['E5'].number_format = DATE_F
+dr['E5'].font = Font(name=FONT, size=13, bold=True, color=DEEP)
+dr['E5'].alignment = Alignment(horizontal='right', vertical='center')
+dr.merge_cells('E6:F6')
+dr['E6'] = 'STATEMENT DATE'
+dr['E6'].font = Font(name=FONT, size=8, bold=True, color=MUTED)
+dr['E6'].alignment = Alignment(horizontal='right')
+
+KPI = 8
+kpis = [('Opening Balance', f'=Stock!$C${tot}', N_IND, 'slabs'),
+        ("Today's Production", f'=Stock!$D${tot}', N_DASH, 'slabs'),
+        ("Today's Shipment", f'=Stock!$E${tot}', N_DASH, 'slabs'),
+        ('Closing Balance', f'=Stock!$H${tot}', N_IND, 'slabs')]
+for i, (lab, f, fmt, unit) in enumerate(kpis):
+    col = 1 + i
+    k = dr.cell(row=KPI, column=col, value=lab.upper())
+    k.font = Font(name=FONT, size=8, bold=True, color=MUTED)
+    k.fill = PatternFill('solid', fgColor=WASH)
+    k.border = Border(left=thin, right=thin, top=thin)
+    k.alignment = Alignment(horizontal='left', indent=1)
+    v = dr.cell(row=KPI + 1, column=col, value=f)
+    v.font = Font(name=FONT, size=14, bold=True, color=INK)
+    v.number_format = fmt
+    v.fill = PatternFill('solid', fgColor=WASH)
+    v.border = Border(left=thin, right=thin, bottom=thin)
+    v.alignment = Alignment(horizontal='left', indent=1)
+dr.merge_cells(f'E{KPI}:F{KPI}')
+dr.merge_cells(f'E{KPI+1}:F{KPI+1}')
+kv = dr.cell(row=KPI, column=5, value='STOCK VALUE')
+kv.font = Font(name=FONT, size=8, bold=True, color='CFE8F2')
+kv.fill = PatternFill('solid', fgColor=DEEP)
+kv.alignment = Alignment(horizontal='left', indent=1)
+vv = dr.cell(row=KPI + 1, column=5, value=f'=IF(Stock!$J${tot}="","Rate not entered",Stock!$J${tot})')
+vv.font = Font(name=FONT, size=14, bold=True, color='FFFFFF')
+vv.number_format = CUR_IND
+vv.fill = PatternFill('solid', fgColor=DEEP)
+vv.alignment = Alignment(horizontal='left', indent=1)
+for c in (5, 6):
+    dr.cell(row=KPI, column=c).fill = PatternFill('solid', fgColor=DEEP)
+    dr.cell(row=KPI + 1, column=c).fill = PatternFill('solid', fgColor=DEEP)
+dr.row_dimensions[KPI].height = 13
+dr.row_dimensions[KPI + 1].height = 22
+
+def section(row, text):
+    dr.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
+    c = dr.cell(row=row, column=1, value=text.upper())
+    c.font = Font(name=FONT, size=9, bold=True, color=DEEP)
+    c.fill = PatternFill('solid', fgColor=BAND)
+    c.alignment = Alignment(vertical='center')
+    dr.row_dimensions[row].height = 17
+    for col in range(1, 7):
+        dr.cell(row=row, column=col).fill = PatternFill('solid', fgColor=BAND)
+        dr.cell(row=row, column=col).border = Border(top=thin, bottom=thin)
+
+def sub_head(row, cols, align_from=3):
+    for i, t in enumerate(cols, start=1):
+        c = dr.cell(row=row, column=i, value=t)
+        c.font = Font(name=FONT, size=8, bold=True, color='FFFFFF')
+        c.fill = PatternFill('solid', fgColor=DEEP)
+        c.alignment = Alignment(horizontal='right' if i >= align_from else 'left', wrap_text=True)
+        c.border = box
+    dr.row_dimensions[row].height = 22
+
+# --- position by brand (fixed height, so it never floats) ---
+BSEC = 11
+section(BSEC, 'Position by brand')
+sub_head(BSEC + 1, ['Brand', 'Opening Balance', "Today's Production", "Today's Shipment",
+                    'Closing Balance', 'Stock Value (₹)'], align_from=2)
+brow = BSEC + 2
+for i in range(len(BRANDS)):
+    r = brow + i
+    src_r = sr + i
+    for col, L in enumerate('ABCDEF', start=1):
+        c = dr.cell(row=r, column=col, value=f'=Summary!${L}${src_r}')
+        c.border = box
+        c.font = Font(name=FONT, size=9, color=INK, bold=(col == 5))
+        c.number_format = (CUR_IND if col == 6 else
+                           N_DASH if col in (3, 4) else
+                           N_IND if col > 1 else 'General')
+        if i % 2:
+            c.fill = PatternFill('solid', fgColor=WASH)
+    dr.row_dimensions[r].height = 13
+blast = brow + len(BRANDS) - 1
+btot = blast + 1
+for col, L in enumerate('ABCDEF', start=1):
+    c = dr.cell(row=btot, column=col, value=f'=Summary!${L}${stot}')
+    c.fill = PatternFill('solid', fgColor=DEEP)
+    c.font = Font(name=FONT, size=9, bold=True, color='FFFFFF')
+    c.border = box
+    c.number_format = (CUR_IND if col == 6 else N_DASH if col in (3, 4)
+                       else N_IND if col > 1 else 'General')
+dr.row_dimensions[btot].height = 15
+
+# --- today's movements ---
+MSEC = btot + 2
+section(MSEC, "Today's movements")
+sub_head(MSEC + 1, ['Brand', 'Product', 'Production', 'Shipment', 'Closing Balance', ''])
+mrow = MSEC + 2
+for i in range(MOVE_ROWS):
+    r = mrow + i
+    rank = i + 1
+    dr.cell(row=r, column=8, value=f'=IFERROR(MATCH({rank},Stock!$N${first}:$N${last},0),"")')\
+      .font = Font(name=FONT, size=8, color=MUTED)
+    for col, src_col in ((1, 'A'), (2, 'B'), (3, 'D'), (4, 'E'), (5, 'H')):
+        c = dr.cell(row=r, column=col,
+                    value=f'=IF($H{r}="","",INDEX(Stock!${src_col}${first}:${src_col}${last},$H{r}))')
+        c.font = Font(name=FONT, size=9, color=INK, bold=(col == 5))
+        c.number_format = N_IND if col == 5 else (N_DASH if col in (3, 4) else 'General')
+    dr.cell(row=r, column=6, value='')
+    dr.row_dimensions[r].height = 13
+mlast = mrow + MOVE_ROWS - 1
+# rule the row only when it carries a movement, so unused lines print blank
+dr.conditional_formatting.add(
+    f'A{mrow}:F{mlast}',
+    FormulaRule(formula=[f'$B{mrow}<>""'],
+                border=Border(left=thin, right=thin, top=thin, bottom=thin), stopIfTrue=False))
+
+mtot = mlast + 1
+dr.cell(row=mtot, column=1, value='TOTAL MOVED TODAY')
+for col in range(1, 7):
+    c = dr.cell(row=mtot, column=col)
+    c.fill = PatternFill('solid', fgColor=WASH)
+    c.border = Border(top=Side(style='medium', color=DEEP), bottom=thin, left=thin, right=thin)
+    c.font = Font(name=FONT, size=9, bold=True, color=INK)
+dr.cell(row=mtot, column=3, value=f'=SUM(C{mrow}:C{mlast})').number_format = N_DASH
+dr.cell(row=mtot, column=4, value=f'=SUM(D{mrow}:D{mlast})').number_format = N_DASH
+dr.cell(row=mtot, column=2,
+        value=f'=COUNTIF(Stock!$M${first}:$M${last},1)&" product(s)"')
+dr.cell(row=mtot, column=2).font = Font(name=FONT, size=9, color=MUTED)
+dr.cell(row=mtot, column=2).alignment = Alignment(horizontal='left')
+dr.row_dimensions[mtot].height = 15
+
+note = mtot + 1
+dr.merge_cells(start_row=note, start_column=1, end_row=note, end_column=6)
+dr.cell(row=note, column=1, value=(
+    f'=IF(COUNTIF(Stock!$M${first}:$M${last},1)>{MOVE_ROWS},'
+    f'"Note: "&(COUNTIF(Stock!$M${first}:$M${last},1)-{MOVE_ROWS})&'
+    f'" further product(s) moved today — see the Stock sheet for the full list.","")'))
+dr.cell(row=note, column=1).font = Font(name=FONT, size=8, bold=True, color='B3261E')
+
+foot = note + 2
+dr.merge_cells(start_row=foot, start_column=1, end_row=foot, end_column=6)
+fc = dr.cell(row=foot, column=1,
+             value='Prepared from the stock register. Closing Balance = Opening Balance '
+                   '+ Production to Date − Shipment to Date.')
+fc.font = Font(name=FONT, size=8, italic=True, color=MUTED)
+for col in range(1, 7):
+    dr.cell(row=foot, column=col).border = Border(top=thin)
+
+dr.print_area = f'A1:F{foot}'
+dr.page_setup.orientation = 'portrait'
+dr.page_setup.fitToWidth = 1
+dr.page_setup.fitToHeight = 1
+dr.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+dr.page_margins.left = dr.page_margins.right = 0.4
+dr.page_margins.top = dr.page_margins.bottom = 0.4
+
+wb.active = wb.index(dr)
 for ws in wb.worksheets:
     ws.sheet_view.showGridLines = False
 wb.save(OUT)
-print(f'wrote {OUT}: {len(STOCK)} grades, {len(ENTRIES)} opening entries, {len(BRANDS)} brands')
+print(f'wrote {OUT}: {len(STOCK)} products, {len(LOG)} log rows, {len(BRANDS)} brands, '
+      f'report prints {MOVE_ROWS} movement lines')
