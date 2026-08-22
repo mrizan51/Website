@@ -27,7 +27,8 @@ The figures ship as recorded on 20/08/26; edits are kept in the browser, and
 The daily loop is four steps, and step 4 is the directors' PDF:
 
 1. On `Daily Entry`, add one row per product that moved — date, product from the
-   dropdown, slabs produced and/or shipped.
+   dropdown, quantity in that product's own unit (slabs, or kilos for tuna and
+   mackerel).
 2. On `Stock`, set **Statement date** and the **US$ → ₹ exchange rate** for today.
 3. Open `Daily Report` — it has already rebuilt itself.
 4. **File ▸ Export ▸ Create PDF/XPS**, choose *Selected sheet*, and send it.
@@ -41,19 +42,19 @@ shown rather than dropping them silently.
 
 
 [`stock-statement/PEI-Stock-Register.xlsx`](stock-statement/PEI-Stock-Register.xlsx)
-is the same stock as a working Excel model — five sheets, 834 live formulas.
+is the same stock as a working Excel model — five sheets, 3,262 live formulas,
+82 products across 13 brands.
 
 Opening balance is a **frozen baseline** (the position on 20/08/2026), never
 re-keyed. Each day's movements go in as dated rows on `Daily Entry`, and
 
 ```
-Closing slabs = opening balance + production to date − shipment to date
+Closing Balance = Opening Balance + production to date − shipment to date
 ```
 
 so the register rolls itself forward. `Stock` also carries two "today" columns
 driven by the statement-date cell, which reproduce the paper sheet's *Day's
-Production* and *Shipment* columns. `Summary` totals by brand off `Stock`, so the
-two can never disagree.
+Production* and *Shipment* columns.
 
 **Units.** Balances are counted in each product's own unit, so a Unit and a
 **Kg / Unit** pack size sit on every row:
@@ -85,10 +86,6 @@ its unit, pack size, closing balance, closing kg, export rate and rupee value,
 then a brand subtotal, then a grand total. Each table has 3 spare slots, and
 there are 2 spare brand tables.
 
-`Daily Entry` ships holding the 14 production rows from 20/08/26, so `Stock`
-opens showing a closing position of 1,07,750 slabs — the total on the paper
-statement.
-
 **Protection.** Every sheet is protected and formatting is locked, so widths,
 fonts, colours and number formats cannot be changed by accident. Only two places
 accept typing:
@@ -96,7 +93,7 @@ accept typing:
 | Where | What |
 |---|---|
 | `Daily Entry` | the whole grid — date, product, production, shipment, note |
-| `Stock` | the Statement date, the US$ → ₹ exchange rate, and the Rate / Slab column |
+| `Stock` | Statement date, exchange rate, Unit, Kg / Unit and Rate / Kg |
 
 Everything else — headings, opening balances, formulas, totals, `Summary` and
 `Daily Report` — is locked, as is the workbook structure (no adding, renaming or
@@ -104,21 +101,19 @@ deleting sheets). Filtering still works. Excel sheet protection is a guardrail
 against accidents, **not security**: the password is trivially removable by
 anyone determined.
 
-**Adding a product or a brand** needs no unprotecting. `Stock` carries 20 blank
-rows under the last product and `Summary` carries 3 blank brand rows; every
-formula on them is already in place and they stay blank until filled.
+**Adding a product or a brand** needs no unprotecting. `Stock` carries 25 blank
+rows under the last product; every formula on them is already in place.
 
-- **New product** — type Brand, Product and Opening Balance into the first blank
-  row on `Stock`. That is all. The `Daily Entry` dropdown reads from a defined
-  name (`OFFSET`/`COUNTA`), so it grows by itself and never shows blank options.
-- **New brand** — do the above, then type the brand name into a blank row on
-  `Summary`. Until you do, a red line on both `Summary` and `Daily Report` says
-  the brand list is incomplete and the totals are understated; both clear
-  themselves once the brand is added.
+- **New product** — type Brand, Product, Unit, Kg / Unit and Opening Balance into
+  the first blank row on `Stock`. The `Daily Entry` dropdown reads from a defined
+  name (`OFFSET`/`COUNTA`), so it grows by itself and never shows blank options,
+  and the product appears in its brand's `Summary` table automatically.
+- **New brand** — do the above, then type the brand name into a blank brand band
+  on `Summary` and a blank row on the `Daily Report` brand table. Until you do, a
+  red line on both says the totals understate the stock; both clear themselves.
 
-That warning compares the `Summary` brand total against the `Stock` grand total,
-so a brand that exists on `Stock` but is missing from the list can never leave
-silently in a report.
+That warning compares the brand totals against the `Stock` grand total in kilos,
+so a brand on `Stock` with no table can never leave silently in a report.
 
 **Rebuilding is three steps, in order:**
 
