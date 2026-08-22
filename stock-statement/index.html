@@ -312,7 +312,7 @@ tr:hover .del,.del:focus-visible{opacity:1}
   <p class="hint">
     Opening balance, production, shipment and rate are editable — click any figure and type.
     Closing slabs and stock value are calculated, so they always agree with the columns beside them.
-    Enter a rate per slab to value the stock. Your work is kept in this browser;
+    Rate per slab is the export price in US dollars; set the US$ &rarr; &#8377; rate to value the stock in rupees. Your work is kept in this browser;
     <kbd>Print / Save PDF</kbd> gives an A4 copy.
   </p>
 </div>
@@ -341,6 +341,9 @@ tr:hover .del,.del:focus-visible{opacity:1}
     <div class="datebox">
       <div class="k">As at</div>
       <div class="v"><input class="f n" id="asAt" value="20.08.2026" style="width:26mm"></div>
+      <div class="k">US$ &rarr; &#8377;</div>
+      <div class="v"><input class="f n" id="fx" inputmode="decimal" placeholder="88.50"
+                            style="width:20mm"></div>
     </div>
   </div>
 
@@ -373,7 +376,7 @@ tr:hover .del,.del:focus-visible{opacity:1}
           <th>Day's<br>prod.</th>
           <th>Shipment</th>
           <th>Closing<br>slabs</th>
-          <th>Rate / slab<br>(&#8377;)</th>
+          <th>Rate / slab<br>(US$)</th>
           <th>Stock value<br>(&#8377;)</th>
         </tr>
       </thead>
@@ -383,7 +386,7 @@ tr:hover .del,.del:focus-visible{opacity:1}
 
   <div class="formula">
     <span><code>Closing slabs = Opening balance + Day's production &minus; Shipment</code></span>
-    <span><code>Stock value = Closing slabs &times; Rate per slab</code></span>
+    <span><code>Stock value (&#8377;) = Closing slabs &times; Rate per slab (US$) &times; US$ &rarr; &#8377; rate</code></span>
   </div>
 
   <div class="sheetfoot">
@@ -487,7 +490,9 @@ tr:hover .del,.del:focus-visible{opacity:1}
     });
   }
   var closing = function(r){ return parseNum(r[1]) + parseNum(r[2]) - parseNum(r[3]); };
-  var value   = function(r){ return closing(r) * parseNum(r[4]); };
+  var fxRate  = function(){ return parseNum(document.getElementById('fx').value); };
+  // rate per slab is the export price in US dollars; the stock reports in rupees
+  var value   = function(r){ return closing(r) * parseNum(r[4]) * fxRate(); };
 
   /* ---------- render ---------- */
   function numCell(gi, ri, ci){
@@ -574,7 +579,8 @@ tr:hover .del,.del:focus-visible{opacity:1}
     document.getElementById('tClose').textContent = fi(T.close);
     document.getElementById('tValue').textContent = compactINR(T.value);
     document.getElementById('tValueNote').textContent =
-      T.value ? 'at the rates entered' : 'rate not entered';
+      T.value ? ('at ' + fxRate().toFixed(2) + ' per US$')
+              : (fxRate() ? 'export rates not entered' : 'exchange rate not set');
     document.getElementById('footDate').textContent =
       'As at ' + (document.getElementById('asAt').value || '');
 
@@ -591,7 +597,9 @@ tr:hover .del,.del:focus-visible{opacity:1}
     if(!rows.length){
       bars.innerHTML = '<div class="chart-empty">' +
         (key === 'value'
-          ? 'Enter a rate per slab in the table below to value the stock.'
+          ? (fxRate()
+              ? 'Enter an export rate per slab in the table below to value the stock.'
+              : 'Set the US$ \u2192 \u20B9 rate beside the date to value the stock.')
           : 'No closing stock recorded.') + '</div>';
       return;
     }
@@ -616,7 +624,8 @@ tr:hover .del,.del:focus-visible{opacity:1}
     saveTimer = setTimeout(function(){
       try{
         localStorage.setItem('pei-stock', JSON.stringify({
-          state: state, asAt: document.getElementById('asAt').value, metric: metric
+          state: state, asAt: document.getElementById('asAt').value,
+          fx: document.getElementById('fx').value, metric: metric
         }));
       }catch(e){}
     }, 300);
@@ -648,6 +657,7 @@ tr:hover .del,.del:focus-visible{opacity:1}
   });
 
   document.getElementById('asAt').addEventListener('input', function(){ recalc(); save(); });
+  document.getElementById('fx').addEventListener('input', function(){ recalc(); save(); });
 
   document.getElementById('chartMetric').addEventListener('click', function(){
     metric = metric === 'slabs' ? 'value' : 'slabs';
@@ -672,7 +682,7 @@ tr:hover .del,.del:focus-visible{opacity:1}
      hand the viewer a file, so a download button would be dead. */
   document.getElementById('copyCsv').addEventListener('click', function(){
     var out = [['Brand','Count / grade','Opening balance',"Day's production",
-                'Shipment','Closing slabs','Rate per slab','Stock value'].join(',')];
+                'Shipment','Closing slabs','Rate per slab (US$)','Stock value (INR)'].join(',')];
     state.forEach(function(g){
       g.rows.forEach(function(r){
         out.push([g.brand, '"' + String(r[0]).replace(/"/g,'""') + '"',
@@ -715,6 +725,7 @@ tr:hover .del,.del:focus-visible{opacity:1}
   if(stored && stored.state && stored.state.length){
     state = stored.state;
     if(stored.asAt) document.getElementById('asAt').value = stored.asAt;
+    if(stored.fx) document.getElementById('fx').value = stored.fx;
     if(stored.metric) metric = stored.metric;
     document.getElementById('chartMetric').textContent = 'Chart: ' + metric;
   } else {

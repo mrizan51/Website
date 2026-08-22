@@ -9,9 +9,11 @@ and processing statement, rebuilt from the printed sheet. Open it in any browser
   subtotal after each and a grand total at the foot.
 - **Closing slabs** and **stock value** are calculated, never typed, so they cannot
   drift from the columns beside them:
-  `closing = opening + production − shipment`, `value = closing × rate per slab`.
-- A **rate per slab** column values the stock. Figures are grouped in the Indian
-  system and the headline reads in lakh/crore.
+  `closing = opening + production − shipment`,
+  `value (₹) = closing × rate per slab (US$) × the US$ → ₹ rate`.
+- A **rate per slab** column holds the export price in US dollars; with the
+  US$ → ₹ rate beside the date, the stock is valued in rupees. Figures are
+  grouped in the Indian system and the headline reads in lakh/crore.
 - Summary tiles and a by-brand bar chart (slabs or value) sit above the table.
 - Grades holding no stock are greyed rather than left blank, so an empty cell
   always means "not recorded" instead of "zero".
@@ -39,7 +41,7 @@ shown rather than dropping them silently.
 
 
 [`stock-statement/PEI-Stock-Register.xlsx`](stock-statement/PEI-Stock-Register.xlsx)
-is the same stock as a working Excel model — four sheets, 348 live formulas.
+is the same stock as a working Excel model — five sheets, 834 live formulas.
 
 Opening balance is a **frozen baseline** (the position on 20/08/2026), never
 re-keyed. Each day's movements go in as dated rows on `Daily Entry`, and
