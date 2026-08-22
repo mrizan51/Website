@@ -25,6 +25,7 @@ from openpyxl.worksheet.properties import PageSetupProperties
 from openpyxl.comments import Comment
 from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.workbook.defined_name import DefinedName
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOGO = os.path.join(ROOT, 'stock-statement', 'assets', 'pei-mark.png')
@@ -43,6 +44,10 @@ UNLOCK = Protection(locked=False)
 
 ENTRY_FIRST, ENTRY_MAX, ENTRY_FMT = 7, 5000, 250
 MOVE_ROWS = 20                      # movement lines the daily report prints
+# Spare capacity so a new product or brand is three cells of typing rather than
+# surgery on fixed ranges. Blank spares contribute nothing and print blank.
+SPARE_PRODUCTS = 20
+SPARE_BRANDS = 3
 
 # LibreOffice drops <workbookProtection> attributes when it recalculates, and
 # re-saving through openpyxl would strip every cached formula value. So the
@@ -333,8 +338,18 @@ lines = [
     ('p', "and the two 'today' columns would quietly read zero."),
     ('n', ''),
     ('h', 'Adding a product'),
-    ('p', "Add the row at the bottom of 'Stock' (brand, product, opening balance), then copy the"),
-    ('p', 'formulas down from the row above. The dropdown picks it up automatically.'),
+    ('p', "'Stock' keeps 20 blank rows under the last product. Type the Brand, the Product and"),
+    ('p', 'the Opening Balance into the first blank row — nothing else, and no unprotecting.'),
+    ('p', 'Every formula on that row is already in place, and the row stays blank until you'),
+    ('p', "fill it. The 'Daily Entry' dropdown picks the new product up straight away."),
+    ('n', ''),
+    ('h', 'Adding a brand'),
+    ('p', "Do the same on 'Stock', then type the brand name into a blank row on 'Summary'."),
+    ('p', 'Until you do, a red line on Summary and on the Daily Report will tell you the'),
+    ('p', 'brand list is incomplete and the totals are understated. Both clear themselves.'),
+    ('n', ''),
+    ('h', 'When the blank rows run out'),
+    ('p', 'Ask for a rebuild — the file is generated, and a new one carries your data across.'),
     ('n', ''),
     ('h', 'Source'),
     ('p', 'Opening balances and the first day of production come from the purchase & processing'),
@@ -397,19 +412,26 @@ st.cell(row=HDR, column=3).comment = Comment(
 
 first = HDR + 1
 ent = lambda col: f"'Daily Entry'!${col}${ENTRY_FIRST}:${col}${ENTRY_MAX}"
-for i, (brand, product, ob) in enumerate(STOCK):
+ROWS = list(STOCK) + [(None, None, None)] * SPARE_PRODUCTS
+for i, (brand, product, ob) in enumerate(ROWS):
     r = first + i
+    spare = brand is None
     st.cell(row=r, column=1, value=brand).font = Font(name=FONT, size=10, color=INK)
     st.cell(row=r, column=2, value=product).font = Font(name=FONT, size=10, color=INK)
     c = st.cell(row=r, column=3, value=ob)
     c.font = Font(name=FONT, size=10, color=BLUE_IN)
     c.number_format = N_IND
+    if spare:
+        # capacity, not history: these three accept typing without unprotecting
+        for col in (1, 2, 3):
+            st.cell(row=r, column=col).protection = UNLOCK
 
-    st.cell(row=r, column=4, value=f"=SUMIFS({ent('C')},{ent('B')},$L{r},{ent('A')},$C$3)")
-    st.cell(row=r, column=5, value=f"=SUMIFS({ent('D')},{ent('B')},$L{r},{ent('A')},$C$3)")
-    st.cell(row=r, column=6, value=f"=SUMIFS({ent('C')},{ent('B')},$L{r})")
-    st.cell(row=r, column=7, value=f"=SUMIFS({ent('D')},{ent('B')},$L{r})")
-    st.cell(row=r, column=8, value=f'=$C{r}+$F{r}-$G{r}')
+    g = lambda f: f'=IF($A{r}="","",{f})'          # blank row stays blank
+    st.cell(row=r, column=4, value=g(f"SUMIFS({ent('C')},{ent('B')},$L{r},{ent('A')},$C$3)"))
+    st.cell(row=r, column=5, value=g(f"SUMIFS({ent('D')},{ent('B')},$L{r},{ent('A')},$C$3)"))
+    st.cell(row=r, column=6, value=g(f"SUMIFS({ent('C')},{ent('B')},$L{r})"))
+    st.cell(row=r, column=7, value=g(f"SUMIFS({ent('D')},{ent('B')},$L{r})"))
+    st.cell(row=r, column=8, value=g(f'$C{r}+$F{r}-$G{r}'))
     rate = st.cell(row=r, column=9)
     rate.fill = PatternFill('solid', fgColor=YELLOW)
     rate.number_format = RATE_F
@@ -419,8 +441,8 @@ for i, (brand, product, ob) in enumerate(STOCK):
     if key in RATES:
         rate.value = RATES[key]
     st.cell(row=r, column=10, value=f'=IF($I{r}="","",$H{r}*$I{r})').number_format = CUR_IND
-    for col, val in ((12, f'=$A{r}&" - "&$B{r}'),
-                     (13, f'=IF(OR($D{r}<>0,$E{r}<>0),1,0)'),
+    for col, val in ((12, f'=IF($A{r}="","",$A{r}&" - "&$B{r})'),
+                     (13, f'=IF($A{r}="",0,IF(OR($D{r}<>0,$E{r}<>0),1,0))'),
                      (14, f'=IF($M{r}=1,SUM($M${first}:$M{r}),"")')):
         h = st.cell(row=r, column=col, value=val)
         h.font = Font(name=FONT, size=9, color=MUTED)
@@ -437,7 +459,7 @@ for i, (brand, product, ob) in enumerate(STOCK):
         if i % 2 and col != 9:
             cell.fill = PatternFill('solid', fgColor=WASH)
 
-last = first + len(STOCK) - 1
+last = first + len(ROWS) - 1
 tot = last + 1
 st.cell(row=tot, column=1, value='GRAND TOTAL')
 for col in range(1, 11):
@@ -521,7 +543,10 @@ for _col, _fmt in _entry_fmt.items():
     _cd.font = Font(name=FONT, size=10, color=BLUE_IN)
     _cd.number_format = _fmt
 
-dv_item = DataValidation(type='list', formula1=f'=Stock!$L${first}:$L${last}', allow_blank=True)
+wb.defined_names.add(DefinedName(
+    'Products',
+    attr_text=f'OFFSET(Stock!$L${first},0,0,MAX(1,COUNTA(Stock!$A${first}:$A${last})),1)'))
+dv_item = DataValidation(type='list', formula1='=Products', allow_blank=True)
 dv_item.error = 'Pick a product from the dropdown so the entry reaches the Stock sheet.'
 dv_item.errorTitle = 'Unknown product'
 de.add_data_validation(dv_item)
@@ -578,14 +603,19 @@ SH = 8
 head(sm, SH, ['Brand', 'Opening Balance', "Today's Production", "Today's Shipment",
               'Closing Balance', 'Stock Value (₹)'], [24, 15, 15, 15, 14, 18], align_from=2)
 sr = SH + 1
-for i, b in enumerate(BRANDS):
+BRAND_ROWS = list(BRANDS) + [None] * SPARE_BRANDS
+for i, b in enumerate(BRAND_ROWS):
     r = sr + i
     sm.cell(row=r, column=1, value=b).font = Font(name=FONT, size=10, color=INK)
+    if b is None:
+        sm.cell(row=r, column=1).protection = UNLOCK   # room for a new brand
     for col, src_col in ((2, 'C'), (3, 'D'), (4, 'E'), (5, 'H'), (6, 'J')):
         rng = (f'Stock!$A${first}:$A${last},$A{r},'
                f'Stock!${src_col}${first}:${src_col}${last}')
+        inner = f'SUMIF({rng})'
         c = sm.cell(row=r, column=col,
-                    value=(f'=IF(SUMIF({rng})=0,"",SUMIF({rng}))' if col == 6 else f'=SUMIF({rng})'))
+                    value=(f'=IF(OR($A{r}="",{inner}=0),"",{inner})' if col == 6
+                           else f'=IF($A{r}="","",{inner})'))
         c.number_format = CUR_IND if col == 6 else (N_DASH if col in (3, 4) else N_IND)
         c.font = Font(name=FONT, size=10, color=INK, bold=(col == 5))
     for col in range(1, 7):
@@ -594,7 +624,7 @@ for i, b in enumerate(BRANDS):
         if i % 2:
             cell.fill = PatternFill('solid', fgColor=WASH)
 
-slast = sr + len(BRANDS) - 1
+slast = sr + len(BRAND_ROWS) - 1
 stot = slast + 1
 sm.cell(row=stot, column=1, value='GRAND TOTAL')
 for col in range(1, 7):
@@ -608,7 +638,12 @@ for col in range(1, 7):
         c.value = f'=IF(SUM({rng})=0,"",SUM({rng}))' if col == 6 else f'=SUM({rng})'
         c.number_format = CUR_IND if col == 6 else (N_DASH if col in (3, 4) else N_IND)
 
-sm.cell(row=stot + 2, column=1,
+MISMATCH = (f'ROUND(SUM($E${sr}:$E${slast}),2)<>ROUND(Stock!$H${tot},2)')
+warn = sm.cell(row=stot + 2, column=1,
+               value=f'=IF({MISMATCH},"A brand used on Stock is missing from this list — '
+                     f'type it into a blank row above, or the totals understate the stock.","")')
+warn.font = Font(name=FONT, size=10, bold=True, color='B3261E')
+sm.cell(row=stot + 3, column=1,
         value="Brand totals read straight off 'Stock', so they can never disagree with it.")\
     .font = Font(name=FONT, size=9, italic=True, color=MUTED)
 sm.print_area = f'A1:F{stot}'
@@ -704,6 +739,15 @@ for c in (5, 6):
 dr.row_dimensions[KPI].height = 13
 dr.row_dimensions[KPI + 1].height = 22
 
+# never let an incomplete brand list go out as a finished report
+dr.merge_cells(start_row=KPI + 2, start_column=1, end_row=KPI + 2, end_column=6)
+alert = dr.cell(row=KPI + 2, column=1,
+                value=f'=IF(ROUND(Summary!$E${stot},2)<>ROUND(Stock!$H${tot},2),'
+                      f'"A brand on Stock is missing from the Summary list — this report '
+                      f'understates the total. Add it before sending.","")')
+alert.font = Font(name=FONT, size=9, bold=True, color='B3261E')
+dr.row_dimensions[KPI + 2].height = 12
+
 def section(row, text):
     dr.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
     c = dr.cell(row=row, column=1, value=text.upper())
@@ -730,11 +774,15 @@ section(BSEC, 'Position by brand')
 sub_head(BSEC + 1, ['Brand', 'Opening Balance', "Today's Production", "Today's Shipment",
                     'Closing Balance', 'Stock Value (₹)'], align_from=2)
 brow = BSEC + 2
-for i in range(len(BRANDS)):
+for i in range(len(BRAND_ROWS)):
     r = brow + i
     src_r = sr + i
     for col, L in enumerate('ABCDEF', start=1):
-        c = dr.cell(row=r, column=col, value=f'=Summary!${L}${src_r}')
+        # A plain =Summary!A17 on an empty cell returns 0, not blank — which
+        # printed a stray zero on every spare brand row and defeated the
+        # rule that hides their borders. Test the source brand first.
+        c = dr.cell(row=r, column=col,
+                    value=f'=IF(Summary!$A${src_r}="","",Summary!${L}${src_r})')
         c.border = box
         c.font = Font(name=FONT, size=9, color=INK, bold=(col == 5))
         c.number_format = (CUR_IND if col == 6 else
@@ -743,7 +791,7 @@ for i in range(len(BRANDS)):
         if i % 2:
             c.fill = PatternFill('solid', fgColor=WASH)
     dr.row_dimensions[r].height = 13
-blast = brow + len(BRANDS) - 1
+blast = brow + len(BRAND_ROWS) - 1
 btot = blast + 1
 for col, L in enumerate('ABCDEF', start=1):
     c = dr.cell(row=btot, column=col, value=f'=Summary!${L}${stot}')
@@ -777,6 +825,10 @@ dr.conditional_formatting.add(
     f'A{mrow}:F{mlast}',
     FormulaRule(formula=[f'$B{mrow}<>""'],
                 border=Border(left=thin, right=thin, top=thin, bottom=thin), stopIfTrue=False))
+dr.conditional_formatting.add(
+    f'A{brow}:F{blast}',
+    FormulaRule(formula=[f'$A{brow}=""'],
+                border=Border(), stopIfTrue=True))
 
 mtot = mlast + 1
 dr.cell(row=mtot, column=1, value='TOTAL MOVED TODAY')

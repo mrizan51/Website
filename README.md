@@ -72,6 +72,22 @@ deleting sheets). Filtering still works. Excel sheet protection is a guardrail
 against accidents, **not security**: the password is trivially removable by
 anyone determined.
 
+**Adding a product or a brand** needs no unprotecting. `Stock` carries 20 blank
+rows under the last product and `Summary` carries 3 blank brand rows; every
+formula on them is already in place and they stay blank until filled.
+
+- **New product** — type Brand, Product and Opening Balance into the first blank
+  row on `Stock`. That is all. The `Daily Entry` dropdown reads from a defined
+  name (`OFFSET`/`COUNTA`), so it grows by itself and never shows blank options.
+- **New brand** — do the above, then type the brand name into a blank row on
+  `Summary`. Until you do, a red line on both `Summary` and `Daily Report` says
+  the brand list is incomplete and the totals are understated; both clear
+  themselves once the brand is added.
+
+That warning compares the `Summary` brand total against the `Stock` grand total,
+so a brand that exists on `Stock` but is missing from the list can never leave
+silently in a report.
+
 **Rebuilding is three steps, in order:**
 
 ```
