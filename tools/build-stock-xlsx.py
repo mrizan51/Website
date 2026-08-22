@@ -200,6 +200,7 @@ LOG = [(BASE_DATE, 'Blue Dolphin - PD PVN 100/200', 1068, 0, "Day's production p
 RATES = {}
 EXTRA_BRANDS = ['Shrimp Whole 5x3kgs']       # tracked, no stock held
 STMT_DATE = BASE_DATE
+FX = None                                    # US$ -> INR, set daily by the user
 
 # ---------------------------------------------------------------- --from
 def as_date(v):
@@ -254,6 +255,8 @@ if SRC:
             EXTRA_BRANDS.append(v)
             seen.add(v)
     STMT_DATE = as_date(s_st['C3'].value) or BASE_DATE
+    _fx = s_st['C4'].value
+    FX = _fx if isinstance(_fx, (int, float)) and _fx else None
     print(f'read {SRC}: {len(STOCK)} products, {len(LOG)} log rows, '
           f'{len(RATES)} rates' + (f', {skipped} rows skipped (unreadable date)' if skipped else ''))
 
@@ -276,7 +279,8 @@ under = Border(bottom=thin)
 N_IND = r'[>=10000000]##\,##\,##\,##0;[>=100000]##\,##\,##0;#,##0'
 N_DASH = r'#,##0;-#,##0;"–"'
 CUR_IND = r'[>=10000000]"₹" ##\,##\,##\,##0.00;[>=100000]"₹" ##\,##\,##0.00;"₹" #,##0.00'
-RATE_F = r'#,##0.00'
+RATE_F = r'"$" #,##0.00'          # rate per slab is an export price, in USD
+FX_F = r'"₹" #,##0.00'
 DATE_F = 'DD/MM/YYYY'
 
 def head(ws, row, cols, widths=None, align_from=3):
@@ -310,7 +314,7 @@ lines = [
     ('h', 'Every day, in one minute'),
     ('p', "1.  Open 'Daily Entry' and add one row per product that moved."),
     ('p', '2.  Type the date, pick the product from the dropdown, enter slabs produced and/or shipped.'),
-    ('p', "3.  On 'Stock', set the Statement date to today."),
+    ('p', "3.  On 'Stock', set the Statement date and the US$ → ₹ exchange rate for today."),
     ('p', "4.  Open 'Daily Report' and save it as PDF — that is the directors' copy."),
     ('n', ''),
     ('h', 'Sending the report'),
@@ -326,12 +330,19 @@ lines = [
     ('n', ''),
     ('h', 'What can be typed into — everything else is locked'),
     ('b', "'Daily Entry' — the whole grid: date, product, production, shipment, note."),
-    ('y', "'Stock' — the Statement date, and the yellow Rate / Slab column."),
+    ('y', "'Stock' — the Statement date, the US$ → ₹ exchange rate, and the Rate / Slab column."),
     ('k', 'Every other cell is protected: headings, opening balances, formulas, totals,'),
     ('k', 'the Summary and the Daily Report. Formatting is locked too, so column widths,'),
     ('k', 'fonts, colours and number formats cannot be changed by accident.'),
     ('p', 'The owner holds the password. To change a locked cell: Review ▸ Unprotect Sheet,'),
     ('p', 'make the change, then Review ▸ Protect Sheet again to put the guard back.'),
+    ('n', ''),
+    ('h', 'How the stock is valued'),
+    ('p', 'Rate / Slab is the export price, in US dollars — that is what the column holds.'),
+    ('p', 'Stock Value (₹) = Closing Balance × Rate / Slab (US$) × the US$ → ₹ rate in C4.'),
+    ('p', 'The exchange rate lives in that one cell, so changing it revalues everything at once.'),
+    ('p', 'Leave it blank and the value column stays blank rather than showing a wrong number;'),
+    ('p', 'the Daily Report says "Exchange rate not set" instead of a figure.'),
     ('n', ''),
     ('h', 'Dates must be real dates'),
     ('p', 'Type 21/08/2026, not text. A date stored as text never matches the Statement date,'),
@@ -389,6 +400,18 @@ st['C3'].alignment = Alignment(horizontal='center')
 st['C3'].protection = UNLOCK
 st['D3'] = "← set to today; drives the two \"today\" columns and the Daily Report"
 st['D3'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
+st['A4'] = 'US$ → ₹ exchange rate'
+st['A4'].font = Font(name=FONT, size=10, bold=True, color=INK)
+st['C4'] = FX
+st['C4'].font = Font(name=FONT, size=10, bold=True, color=BLUE_IN)
+st['C4'].fill = PatternFill('solid', fgColor=YELLOW)
+st['C4'].border = box
+st['C4'].number_format = FX_F
+st['C4'].alignment = Alignment(horizontal='center')
+st['C4'].protection = UNLOCK
+st['D4'] = "← rupees per US dollar; converts the export rates into the value column"
+st['D4'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
+
 st['A5'] = ("Opening balance is a frozen baseline — never re-key it. "
             "Closing follows from the dated rows on 'Daily Entry'.")
 st['A5'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
@@ -396,7 +419,7 @@ st['A5'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
 HDR = 7
 head(st, HDR,
      ['Brand', 'Product', 'Opening Balance', "Today's Production", "Today's Shipment",
-      'Production to Date', 'Shipment to Date', 'Closing Balance', 'Rate / Slab (₹)',
+      'Production to Date', 'Shipment to Date', 'Closing Balance', 'Rate / Slab (US$)',
       'Stock Value (₹)', '', 'Key (do not edit)', 'Moved today', 'Rank'],
      [22, 22, 14, 13, 13, 13, 13, 13, 12, 17, 2, 34, 11, 7])
 st.cell(row=HDR, column=11).fill = PatternFill('solid', fgColor='FFFFFF')
@@ -440,7 +463,10 @@ for i, (brand, product, ob) in enumerate(ROWS):
     key = f'{brand} - {product}'
     if key in RATES:
         rate.value = RATES[key]
-    st.cell(row=r, column=10, value=f'=IF($I{r}="","",$H{r}*$I{r})').number_format = CUR_IND
+    # export price (US$) x closing slabs x the one exchange-rate cell
+    st.cell(row=r, column=10,
+            value=f'=IF(OR($A{r}="",$I{r}="",$C$4=""),"",$H{r}*$I{r}*$C$4)')\
+      .number_format = CUR_IND
     for col, val in ((12, f'=IF($A{r}="","",$A{r}&" - "&$B{r})'),
                      (13, f'=IF($A{r}="",0,IF(OR($D{r}<>0,$E{r}<>0),1,0))'),
                      (14, f'=IF($M{r}=1,SUM($M${first}:$M{r}),"")')):
@@ -596,8 +622,15 @@ sm['C4'].font = Font(name=FONT, size=9, bold=True, color=MUTED)
 sm['C5'] = f'=IF(Stock!$J${tot}="","—",Stock!$J${tot})'
 sm['C5'].font = Font(name=FONT, size=16, bold=True, color=DEEP)
 sm['C5'].number_format = CUR_IND
-sm['C6'] = 'at the rates entered on Stock'
+sm['C6'] = 'at the export rates and exchange rate on Stock'
 sm['C6'].font = Font(name=FONT, size=9, color=MUTED)
+sm['E4'] = 'Stock Value (US$)'
+sm['E4'].font = Font(name=FONT, size=9, bold=True, color=MUTED)
+sm['E5'] = (f'=IF(OR(Stock!$C$4="",Stock!$J${tot}=""),"—",Stock!$J${tot}/Stock!$C$4)')
+sm['E5'].font = Font(name=FONT, size=16, bold=True, color=DEEP)
+sm['E5'].number_format = r'"$" #,##0.00'
+sm['E6'] = 'the same stock at the export prices'
+sm['E6'].font = Font(name=FONT, size=9, color=MUTED)
 
 SH = 8
 head(sm, SH, ['Brand', 'Opening Balance', "Today's Production", "Today's Shipment",
@@ -724,11 +757,15 @@ for i, (lab, f, fmt, unit) in enumerate(kpis):
     v.alignment = Alignment(horizontal='left', indent=1)
 dr.merge_cells(f'E{KPI}:F{KPI}')
 dr.merge_cells(f'E{KPI+1}:F{KPI+1}')
-kv = dr.cell(row=KPI, column=5, value='STOCK VALUE')
+kv = dr.cell(row=KPI, column=5,
+             value=f'=IF(Stock!$C$4="","STOCK VALUE (₹)",'
+                   f'"STOCK VALUE (₹) AT "&TEXT(Stock!$C$4,"0.00")&" / US$")')
 kv.font = Font(name=FONT, size=8, bold=True, color='CFE8F2')
 kv.fill = PatternFill('solid', fgColor=DEEP)
 kv.alignment = Alignment(horizontal='left', indent=1)
-vv = dr.cell(row=KPI + 1, column=5, value=f'=IF(Stock!$J${tot}="","Rate not entered",Stock!$J${tot})')
+vv = dr.cell(row=KPI + 1, column=5,
+             value=f'=IF(Stock!$C$4="","Exchange rate not set",'
+                   f'IF(Stock!$J${tot}="","Export rates not entered",Stock!$J${tot}))')
 vv.font = Font(name=FONT, size=14, bold=True, color='FFFFFF')
 vv.number_format = CUR_IND
 vv.fill = PatternFill('solid', fgColor=DEEP)

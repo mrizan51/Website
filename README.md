@@ -26,7 +26,7 @@ The daily loop is four steps, and step 4 is the directors' PDF:
 
 1. On `Daily Entry`, add one row per product that moved — date, product from the
    dropdown, slabs produced and/or shipped.
-2. On `Stock`, set **Statement date** to today.
+2. On `Stock`, set **Statement date** and the **US$ → ₹ exchange rate** for today.
 3. Open `Daily Report` — it has already rebuilt itself.
 4. **File ▸ Export ▸ Create PDF/XPS**, choose *Selected sheet*, and send it.
    Excel writes the PDF; nothing else needs installing.
@@ -51,7 +51,21 @@ Closing slabs = opening balance + production to date − shipment to date
 so the register rolls itself forward. `Stock` also carries two "today" columns
 driven by the statement-date cell, which reproduce the paper sheet's *Day's
 Production* and *Shipment* columns. `Summary` totals by brand off `Stock`, so the
-two can never disagree. Enter a rate per slab (the yellow cells) to value it.
+two can never disagree.
+
+**Valuation.** Rate / Slab is the **export price in US dollars**, and the stock is
+reported in rupees:
+
+```
+Stock Value (₹) = Closing Balance × Rate / Slab (US$) × Stock!C4
+```
+
+`Stock!C4` is the US$ → ₹ rate, a single cell that revalues the whole register
+when it changes. Leave it blank and the value column stays blank rather than
+showing a wrong figure; the Daily Report then reads *"Exchange rate not set"*
+instead of a number, and states the rate it used (`STOCK VALUE (₹) AT 88.50 /
+US$`) whenever one is present. `Summary` also carries the same stock at the
+export prices in US dollars.
 
 `Daily Entry` ships holding the 14 production rows from 20/08/26, so `Stock`
 opens showing a closing position of 1,07,750 slabs — the total on the paper
@@ -64,7 +78,7 @@ accept typing:
 | Where | What |
 |---|---|
 | `Daily Entry` | the whole grid — date, product, production, shipment, note |
-| `Stock` | the Statement date, and the yellow Rate / Slab column |
+| `Stock` | the Statement date, the US$ → ₹ exchange rate, and the Rate / Slab column |
 
 Everything else — headings, opening balances, formulas, totals, `Summary` and
 `Daily Report` — is locked, as is the workbook structure (no adding, renaming or
