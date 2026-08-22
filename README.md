@@ -57,16 +57,35 @@ two can never disagree. Enter a rate per slab (the yellow cells) to value it.
 opens showing a closing position of 1,07,750 slabs — the total on the paper
 statement.
 
-Rebuild after changing the data or layout with:
+**Protection.** Every sheet is protected and formatting is locked, so widths,
+fonts, colours and number formats cannot be changed by accident. Only two places
+accept typing:
+
+| Where | What |
+|---|---|
+| `Daily Entry` | the whole grid — date, product, production, shipment, note |
+| `Stock` | the Statement date, and the yellow Rate / Slab column |
+
+Everything else — headings, opening balances, formulas, totals, `Summary` and
+`Daily Report` — is locked, as is the workbook structure (no adding, renaming or
+deleting sheets). Filtering still works. Excel sheet protection is a guardrail
+against accidents, **not security**: the password is trivially removable by
+anyone determined.
+
+**Rebuilding is three steps, in order:**
 
 ```
-python tools/build-stock-xlsx.py stock-statement/PEI-Stock-Register.xlsx
-python <xlsx-skill>/scripts/recalc.py stock-statement/PEI-Stock-Register.xlsx 180
+python tools/build-stock-xlsx.py out.xlsx --from <live.xlsx>   # 1. build
+python <xlsx-skill>/scripts/recalc.py out.xlsx 240             # 2. cache values
+python tools/build-stock-xlsx.py --relock out.xlsx             # 3. restore locks
 ```
 
-The recalc step is not optional — openpyxl writes formulas without cached
-values, so an unrecalculated workbook reads as empty to pandas and most
-previewers.
+Step 2 is not optional — openpyxl writes formulas without cached values, so an
+unrecalculated workbook reads as empty to pandas and most previewers. Step 3 is
+not optional either: LibreOffice silently drops the workbook-structure lock, the
+column-level unlocking on `Daily Entry`, and the data-validation ranges when it
+recalculates. Re-saving through openpyxl to restore them would strip the cached
+values again, so `--relock` patches the XML in place instead.
 
 ## Purchase order
 

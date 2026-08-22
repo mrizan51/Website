@@ -17,7 +17,8 @@ without losing a day's work.
 """
 import sys, os, datetime
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, Protection
+from openpyxl.workbook.protection import WorkbookProtection
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.properties import PageSetupProperties
@@ -33,9 +34,122 @@ OUT = args[0] if args else 'PEI-Stock-Register.xlsx'
 SRC = None
 if '--from' in sys.argv:
     SRC = sys.argv[sys.argv.index('--from') + 1]
+# Excel sheet protection is a guardrail against accidents, not security —
+# the password is trivially removable by anyone determined. It exists to stop
+# staff overwriting a formula or restyling the sheet by mistake.
+PASSWORD = (sys.argv[sys.argv.index('--password') + 1]
+            if '--password' in sys.argv else 'PEI2026')
+UNLOCK = Protection(locked=False)
 
 ENTRY_FIRST, ENTRY_MAX, ENTRY_FMT = 7, 5000, 250
 MOVE_ROWS = 20                      # movement lines the daily report prints
+
+# LibreOffice drops <workbookProtection> attributes when it recalculates, and
+# re-saving through openpyxl would strip every cached formula value. So the
+# structure lock is re-applied by patching the XML in place, after recalc:
+#     python tools/build-stock-xlsx.py --relock <file.xlsx>
+if '--relock' in sys.argv:
+    import zipfile, shutil, tempfile, re as _re
+    from openpyxl.utils.protection import hash_password
+    target = sys.argv[sys.argv.index('--relock') + 1]
+    zin = zipfile.ZipFile(target)
+    items = [(i, zin.read(i.filename)) for i in zin.infolist()]
+    zin.close()
+    blob = dict((i.filename, d) for i, d in items)
+
+    # 1. workbook structure lock
+    el = f'<workbookProtection workbookPassword="{hash_password(PASSWORD)}" lockStructure="1"/>'
+    wbx = blob['xl/workbook.xml'].decode('utf-8')
+    if _re.search(r'<workbookProtection[^>]*/>', wbx):
+        wbx = _re.sub(r'<workbookProtection[^>]*/>', el, wbx, count=1)
+    elif '<workbookProtection' in wbx:
+        wbx = _re.sub(r'<workbookProtection.*?</workbookProtection>', el, wbx, count=1, flags=_re.S)
+    else:
+        for a in ('<bookViews', '<sheets'):
+            if a in wbx:
+                wbx = wbx.replace(a, el + a, 1)
+                break
+
+    # 2. Daily Entry's unlocked columns. LibreOffice drops <protection> from a
+    #    column's style, which would re-lock every row past the ruled block.
+    #    Append fresh xfs rather than editing shared ones, so no other cell
+    #    silently becomes writable, then repoint the <col> elements at them.
+    rels = blob['xl/_rels/workbook.xml.rels'].decode('utf-8')
+    rid = dict(_re.findall(r'Id="([^"]+)"[^>]*Target="([^"]+)"', rels))
+    sheet_file = None
+    for m in _re.finditer(r'<sheet\b[^>]*/>', wbx):
+        a = dict(_re.findall(r'(?:r:)?(\w+)="([^"]*)"', m.group(0)))
+        if a.get('name') == 'Daily Entry':
+            t = rid.get(a.get('id', ''), '')
+            sheet_file = 'xl/' + t.lstrip('/').replace('worksheets/', 'worksheets/')
+            break
+    if sheet_file and sheet_file in blob:
+        sx = blob[sheet_file].decode('utf-8')
+        st_xml = blob['xl/styles.xml'].decode('utf-8')
+        head, rest = st_xml.split('<cellXfs', 1)
+        attrs, body_and_tail = rest.split('>', 1)
+        body, tail = body_and_tail.split('</cellXfs>', 1)
+        xfs = _re.findall(r'<xf\b[^>]*/>|<xf\b[^>]*>.*?</xf>', body, _re.S)
+        added = []
+        def unlocked_copy(xf):
+            if '<protection' in xf:
+                # LibreOffice writes an explicit locked="1"; flip it rather
+                # than assuming the presence of the element means unlocked
+                xf = _re.sub(r'<protection\b[^>]*/>',
+                             '<protection locked="0" hidden="0"/>', xf, count=1)
+                open_tag = xf.split('>', 1)[0]
+                if 'applyProtection' not in open_tag:
+                    xf = xf.replace(open_tag, open_tag + ' applyProtection="1"', 1)
+                return xf
+            if xf.endswith('/>'):
+                base = xf[:-2]
+                if 'applyProtection' not in base:
+                    base += ' applyProtection="1"'
+                return base + '><protection locked="0" hidden="0"/></xf>'
+            base = xf[:-len('</xf>')]
+            if 'applyProtection' not in base.split('>', 1)[0]:
+                open_tag, inner = base.split('>', 1)
+                base = open_tag + ' applyProtection="1">' + inner
+            return base + '<protection locked="0" hidden="0"/></xf>'
+        def repoint(m):
+            c = m.group(0)
+            a = dict(_re.findall(r'(\w+)="([^"]*)"', c))
+            lo, hi = int(a.get('min', 0)), int(a.get('max', 0))
+            if lo > 5 or hi < 1:
+                return c
+            sid = int(a.get('style', 0))
+            new_xf = unlocked_copy(xfs[sid])
+            new_id = len(xfs) + len(added)
+            added.append(new_xf)
+            if 'style=' in c:
+                return _re.sub(r'style="\d+"', f'style="{new_id}"', c)
+            return c[:-2] + f' style="{new_id}"/>'
+        sx = _re.sub(r'<col\b[^>]*/>', repoint, sx)
+        # LibreOffice also clips data-validation ranges back to the used rows,
+        # which would leave the dropdown and the date check absent on every
+        # later row. Stretch them back over the whole entry range.
+        def stretch(m):
+            return f'sqref="{m.group(1)}{ENTRY_FIRST}:{m.group(2)}{ENTRY_MAX}"'
+        sx = _re.sub(rf'sqref="([A-Z]+){ENTRY_FIRST}:([A-Z]+)(\d+)"', stretch, sx)
+        if added:
+            body += ''.join(added)
+            attrs = _re.sub(r'count="\d+"', f'count="{len(xfs) + len(added)}"', attrs)
+            blob['xl/styles.xml'] = (head + '<cellXfs' + attrs + '>' + body +
+                                     '</cellXfs>' + tail).encode('utf-8')
+            blob[sheet_file] = sx.encode('utf-8')
+
+    blob['xl/workbook.xml'] = wbx.encode('utf-8')
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
+    with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as zout:
+        for info, data in items:
+            zout.writestr(info, blob[info.filename])
+    tmp.close()
+    shutil.move(tmp.name, target)
+    os.chmod(target, 0o644)
+    print(f'relocked {target}: structure locked, {len(added) if sheet_file else 0} '
+          f'entry columns re-unlocked')
+    sys.exit(0)
+
 
 # ---------------------------------------------------------------- baseline
 BASE_DATE = datetime.date(2026, 8, 20)
@@ -205,11 +319,14 @@ lines = [
     ('p', "counted from every row on 'Daily Entry'. The register rolls forward on its own,"),
     ('p', "so yesterday's closing is today's starting point without anyone copying a number."),
     ('n', ''),
-    ('h', 'Which cells you edit'),
-    ('b', "Blue figures — typed by you. Opening balance on 'Stock'; everything on 'Daily Entry'."),
-    ('y', 'Yellow cells — the statement date, and rate per slab. Fill the rates in to value the stock.'),
-    ('k', 'Black figures — calculated. Do not type over them, or the sheet stops adding up.'),
-    ('g', 'Grey — Key, Moved today and Rank. Machinery for the dropdown and the report. Leave alone.'),
+    ('h', 'What can be typed into — everything else is locked'),
+    ('b', "'Daily Entry' — the whole grid: date, product, production, shipment, note."),
+    ('y', "'Stock' — the Statement date, and the yellow Rate / Slab column."),
+    ('k', 'Every other cell is protected: headings, opening balances, formulas, totals,'),
+    ('k', 'the Summary and the Daily Report. Formatting is locked too, so column widths,'),
+    ('k', 'fonts, colours and number formats cannot be changed by accident.'),
+    ('p', 'The owner holds the password. To change a locked cell: Review ▸ Unprotect Sheet,'),
+    ('p', 'make the change, then Review ▸ Protect Sheet again to put the guard back.'),
     ('n', ''),
     ('h', 'Dates must be real dates'),
     ('p', 'Type 21/08/2026, not text. A date stored as text never matches the Statement date,'),
@@ -254,6 +371,7 @@ st['C3'].fill = PatternFill('solid', fgColor=YELLOW)
 st['C3'].border = box
 st['C3'].number_format = DATE_F
 st['C3'].alignment = Alignment(horizontal='center')
+st['C3'].protection = UNLOCK
 st['D3'] = "← set to today; drives the two \"today\" columns and the Daily Report"
 st['D3'].font = Font(name=FONT, size=9, italic=True, color=MUTED)
 st['A5'] = ("Opening balance is a frozen baseline — never re-key it. "
@@ -296,6 +414,7 @@ for i, (brand, product, ob) in enumerate(STOCK):
     rate.fill = PatternFill('solid', fgColor=YELLOW)
     rate.number_format = RATE_F
     rate.font = Font(name=FONT, size=10, color=BLUE_IN)
+    rate.protection = UNLOCK          # periodic input, kept editable
     key = f'{brand} - {product}'
     if key in RATES:
         rate.value = RATES[key]
@@ -377,6 +496,7 @@ for d, item, prod, ship, note in LOG:
     de.cell(row=er, column=5, value=note).font = Font(name=FONT, size=9, italic=True, color=MUTED)
     for col in range(1, 6):
         de.cell(row=er, column=col).border = box
+        de.cell(row=er, column=col).protection = UNLOCK
     er += 1
 
 for r in range(er, ENTRY_FMT + 1):
@@ -384,9 +504,22 @@ for r in range(er, ENTRY_FMT + 1):
         cell = de.cell(row=r, column=col)
         cell.border = box
         cell.font = Font(name=FONT, size=10, color=BLUE_IN)
+        cell.protection = UNLOCK
     de.cell(row=r, column=1).number_format = DATE_F
     de.cell(row=r, column=3).number_format = N_DASH
     de.cell(row=r, column=4).number_format = N_DASH
+
+# Rows past the ruled block must stay unlocked too, or entry dies partway
+# through the year. Unlocking them cell by cell does not survive: LibreOffice
+# discards empty cells that carry only a style, which re-locked everything
+# past ~row 1020. A column-level default costs nothing and cannot be dropped,
+# because an unmaterialised cell inherits its column's style.
+_entry_fmt = {'A': DATE_F, 'B': 'General', 'C': N_DASH, 'D': N_DASH, 'E': 'General'}
+for _col, _fmt in _entry_fmt.items():
+    _cd = de.column_dimensions[_col]
+    _cd.protection = Protection(locked=False)
+    _cd.font = Font(name=FONT, size=10, color=BLUE_IN)
+    _cd.number_format = _fmt
 
 dv_item = DataValidation(type='list', formula1=f'=Stock!$L${first}:$L${last}', allow_blank=True)
 dv_item.error = 'Pick a product from the dropdown so the entry reaches the Stock sheet.'
@@ -688,6 +821,33 @@ dr.page_margins.top = dr.page_margins.bottom = 0.4
 wb.active = wb.index(dr)
 for ws in wb.worksheets:
     ws.sheet_view.showGridLines = False
+
+# ---------------------------------------------------------------- protection
+# Cells are locked by default; only those given UNLOCK above accept typing.
+# Locking bites only once sheet protection is switched on, below.
+for ws in wb.worksheets:
+    ws.protection.password = PASSWORD
+    ws.protection.sheet = True
+    ws.protection.enable()
+    # True == "locked", i.e. the operation is NOT allowed
+    ws.protection.formatCells = True      # no restyling
+    ws.protection.formatColumns = True    # no widths
+    ws.protection.formatRows = True       # no heights
+    ws.protection.insertRows = True
+    ws.protection.insertColumns = True
+    ws.protection.deleteRows = True
+    ws.protection.deleteColumns = True
+    ws.protection.insertHyperlinks = True
+    ws.protection.sort = True             # sorting would scramble the log
+    ws.protection.pivotTables = True
+    ws.protection.objects = True
+    ws.protection.scenarios = True
+    ws.protection.autoFilter = False      # filtering stays available
+    ws.protection.selectLockedCells = False
+    ws.protection.selectUnlockedCells = False
+
+# stop sheets being added, renamed, moved or deleted
+wb.security = WorkbookProtection(workbookPassword=PASSWORD, lockStructure=True)
 wb.save(OUT)
 print(f'wrote {OUT}: {len(STOCK)} products, {len(LOG)} log rows, {len(BRANDS)} brands, '
       f'report prints {MOVE_ROWS} movement lines')
