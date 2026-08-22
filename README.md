@@ -55,19 +55,35 @@ driven by the statement-date cell, which reproduce the paper sheet's *Day's
 Production* and *Shipment* columns. `Summary` totals by brand off `Stock`, so the
 two can never disagree.
 
-**Valuation.** Rate / Slab is the **export price in US dollars**, and the stock is
-reported in rupees:
+**Units.** Balances are counted in each product's own unit, so a Unit and a
+**Kg / Unit** pack size sit on every row:
+
+| | Unit | Kg / Unit |
+|---|---|---|
+| Blue Dolphin, Primus, AMF, THT, China, Deep Sea | Slab | 2 |
+| Tuna, Mackerel | Kg | 1 |
+| Squid, cuttlefish, shrimp whole | Slab | varies by buyer |
+
+A slab and a kilo cannot be added together, so **every total in the workbook is
+taken in kilos** — `Closing Kg = Closing Balance × Kg / Unit`. A product with no
+Kg / Unit is shaded pink, left out of the totals, and counted in a red line on
+`Stock`, `Summary` and the `Daily Report` until it is filled in.
+
+**Valuation.** Rate / Kg is the export price per kilo, in US dollars:
 
 ```
-Stock Value (₹) = Closing Balance × Rate / Slab (US$) × Stock!C4
+Stock Value (₹) = Closing Kg × Rate / Kg (US$) × Stock!E4
 ```
 
-`Stock!C4` is the US$ → ₹ rate, a single cell that revalues the whole register
-when it changes. Leave it blank and the value column stays blank rather than
-showing a wrong figure; the Daily Report then reads *"Exchange rate not set"*
-instead of a number, and states the rate it used (`STOCK VALUE (₹) AT 88.50 /
-US$`) whenever one is present. `Summary` also carries the same stock at the
-export prices in US dollars.
+`Stock!E4` is the US$ → ₹ rate, one cell that revalues the register when it
+changes. Blank, and the value column stays blank rather than showing a wrong
+figure; the report reads *"Exchange rate not set"* and otherwise states the rate
+it used. `Summary` carries the same stock in dollars.
+
+**`Summary` is a valuation table per brand** — every product of that brand with
+its unit, pack size, closing balance, closing kg, export rate and rupee value,
+then a brand subtotal, then a grand total. Each table has 3 spare slots, and
+there are 2 spare brand tables.
 
 `Daily Entry` ships holding the 14 production rows from 20/08/26, so `Stock`
 opens showing a closing position of 1,07,750 slabs — the total on the paper

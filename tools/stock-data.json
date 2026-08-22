@@ -1,0 +1,780 @@
+{
+ "rows": [
+  [
+   "Blue Dolphin",
+   "PD PVN 100/200",
+   "Slab",
+   2,
+   11459
+  ],
+  [
+   "Blue Dolphin",
+   "PD KKD 100/200",
+   "Slab",
+   2,
+   517
+  ],
+  [
+   "Blue Dolphin",
+   "PD PVN 200/300",
+   "Slab",
+   2,
+   2357
+  ],
+  [
+   "Blue Dolphin",
+   "PD KKD 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Blue Dolphin",
+   "PUD PVN 200/300",
+   "Slab",
+   2,
+   2262
+  ],
+  [
+   "Blue Dolphin",
+   "PUD KKD 200/300",
+   "Slab",
+   2,
+   2835
+  ],
+  [
+   "Blue Dolphin",
+   "PUD PVN 300/500",
+   "Slab",
+   2,
+   1673
+  ],
+  [
+   "Blue Dolphin",
+   "PUD KKD 300/500",
+   "Slab",
+   2,
+   7542
+  ],
+  [
+   "Primus Japan",
+   "PD PVN 100/200",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PD KKD 100/200",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PD PVN 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PD KKD 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PUD KZN 40/60",
+   "Slab",
+   2,
+   64
+  ],
+  [
+   "Primus Japan",
+   "PUD KZN 60/80",
+   "Slab",
+   2,
+   191
+  ],
+  [
+   "Primus Japan",
+   "PUD PVN 80/120",
+   "Slab",
+   2,
+   16849
+  ],
+  [
+   "Primus Japan",
+   "PUD KZN 80/120",
+   "Slab",
+   2,
+   466
+  ],
+  [
+   "Primus Japan",
+   "PUD NRN 80/120",
+   "Slab",
+   2,
+   69
+  ],
+  [
+   "Primus Japan",
+   "PUD PVN 100/200",
+   "Slab",
+   2,
+   2617
+  ],
+  [
+   "Primus Japan",
+   "PUD KKD 100/200",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PUD KZN 100/200",
+   "Slab",
+   2,
+   4209
+  ],
+  [
+   "Primus Japan",
+   "PUD NRN 100/200",
+   "Slab",
+   2,
+   13
+  ],
+  [
+   "Primus Japan",
+   "PUD PVN 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PUD KKD 200/300",
+   "Slab",
+   2,
+   2757
+  ],
+  [
+   "Primus Japan",
+   "PUD KZN 200/300",
+   "Slab",
+   2,
+   1080
+  ],
+  [
+   "Primus Japan",
+   "PUD NRN 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "Primus Japan",
+   "PUD PVN 300/500",
+   "Slab",
+   2,
+   421
+  ],
+  [
+   "Primus Japan",
+   "PUD KKD 300/500",
+   "Slab",
+   2,
+   580
+  ],
+  [
+   "Primus EU",
+   "PUD 20/40",
+   "Slab",
+   2,
+   185
+  ],
+  [
+   "Primus EU",
+   "PUD 40/60",
+   "Slab",
+   2,
+   368
+  ],
+  [
+   "Primus EU",
+   "PUD 60/80",
+   "Slab",
+   2,
+   380
+  ],
+  [
+   "Primus EU",
+   "PUD 80/120",
+   "Slab",
+   2,
+   1151
+  ],
+  [
+   "Primus EU",
+   "PUD 100/200",
+   "Slab",
+   2,
+   3797
+  ],
+  [
+   "Primus EU",
+   "PUD 200/300",
+   "Slab",
+   2,
+   4118
+  ],
+  [
+   "Primus EU",
+   "PUD 300/500",
+   "Slab",
+   2,
+   1490
+  ],
+  [
+   "Primus EU",
+   "BKN",
+   "Slab",
+   2,
+   15130
+  ],
+  [
+   "AMF Brand",
+   "PD PVN 100/200",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "AMF Brand",
+   "PD KKD 100/200",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "AMF Brand",
+   "PD PVN 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "AMF Brand",
+   "PUD PVN 200/300",
+   "Slab",
+   2,
+   1516
+  ],
+  [
+   "AMF Brand",
+   "PUD KKD 200/300",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "AMF Brand",
+   "PUD PVN 300/500",
+   "Slab",
+   2,
+   18
+  ],
+  [
+   "AMF Brand",
+   "PUD KKD 300/500",
+   "Slab",
+   2,
+   0
+  ],
+  [
+   "THT Brand",
+   "PUD PVN 80/120",
+   "Slab",
+   2,
+   1389
+  ],
+  [
+   "THT Brand",
+   "PUD PVN 100/200",
+   "Slab",
+   2,
+   7055
+  ],
+  [
+   "THT Brand",
+   "PUD PVN 200/300",
+   "Slab",
+   2,
+   4682
+  ],
+  [
+   "China",
+   "PUD PVN 300/500",
+   "Slab",
+   2,
+   451
+  ],
+  [
+   "China",
+   "PUD KKD 300/500",
+   "Slab",
+   2,
+   188
+  ],
+  [
+   "China",
+   "PUD PVN 500/800",
+   "Slab",
+   2,
+   401
+  ],
+  [
+   "China",
+   "PUD KKD 500/800",
+   "Slab",
+   2,
+   1920
+  ],
+  [
+   "Deep Sea",
+   "PUD 300/500",
+   "Slab",
+   2,
+   670
+  ],
+  [
+   "Shrimp Whole",
+   "HOSO PVN 4-7",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Tuna",
+   "SKIPJACK 1/2",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Tuna",
+   "SKIPJACK 2/4",
+   "Kg",
+   1,
+   14946.5
+  ],
+  [
+   "Tuna",
+   "SKIPJACK 4/10",
+   "Kg",
+   1,
+   913.5
+  ],
+  [
+   "Tuna",
+   "YELLOW FIN 1/2",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Tuna",
+   "YELLOW FIN 2/4",
+   "Kg",
+   1,
+   32
+  ],
+  [
+   "Tuna",
+   "YELLOW FIN 4/10",
+   "Kg",
+   1,
+   1138
+  ],
+  [
+   "Mackerel",
+   "WHOLE 2/4",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Mackerel",
+   "WHOLE 4/6",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Mackerel",
+   "WHOLE 6/8",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Mackerel",
+   "WHOLE 8/10",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Mackerel",
+   "WHOLE 10/12",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Mackerel",
+   "WHOLE 12/15",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Mackerel",
+   "WHOLE 15/20",
+   "Kg",
+   1,
+   0
+  ],
+  [
+   "Cuttlefish",
+   "CFWC U/1 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Cuttlefish",
+   "CFWC 1/2 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Cuttlefish",
+   "CFWC 2/4 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Cuttlefish",
+   "CFWC 5/7 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Cuttlefish",
+   "CFWC 8/12 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Cuttlefish",
+   "CFWC 13/20 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQW U/3 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQW 3/6 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQW 6/10 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQW 10/20 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQW 20/40 10%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQWC U/5 25%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQWC U/10 25%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "White Squid",
+   "SQWC 10/20 25%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Semi Needle Squid",
+   "SKIN-ON RINGS 3/6 25%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Semi Needle Squid",
+   "SKIN-ON RINGS 6/10 25%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Semi Needle Squid",
+   "SKIN-ON RINGS 10/20 25%",
+   "Slab",
+   null,
+   0
+  ],
+  [
+   "Semi Needle Squid",
+   "SKIN-ON TENTACLES 25%",
+   "Slab",
+   null,
+   0
+  ]
+ ],
+ "brands": [
+  "Blue Dolphin",
+  "Primus Japan",
+  "Primus EU",
+  "AMF Brand",
+  "THT Brand",
+  "China",
+  "Deep Sea",
+  "Shrimp Whole",
+  "Tuna",
+  "Mackerel",
+  "Cuttlefish",
+  "White Squid",
+  "Semi Needle Squid"
+ ],
+ "log": [
+  [
+   "2026-08-20 00:00:00",
+   "Blue Dolphin - PD PVN 100/200",
+   1068,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Blue Dolphin - PD KKD 100/200",
+   65,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Blue Dolphin - PUD PVN 200/300",
+   267,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD KZN 40/60",
+   29,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD KZN 60/80",
+   39,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD KZN 80/120",
+   50,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD NRN 80/120",
+   3,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD KZN 100/200",
+   50,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD KZN 200/300",
+   33,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD PVN 300/500",
+   156,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus Japan - PUD KKD 300/500",
+   596,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "Primus EU - BKN",
+   52,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "THT Brand - PUD PVN 80/120",
+   1872,
+   0
+  ],
+  [
+   "2026-08-20 00:00:00",
+   "THT Brand - PUD PVN 100/200",
+   600,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PD PVN 100/200",
+   1123,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PD KKD 100/200",
+   59,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PUD PVN 200/300",
+   245,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PUD PVN 300/500",
+   63,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "THT Brand - PUD PVN 80/120",
+   1042,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "THT Brand - PUD PVN 100/200",
+   1769,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Primus Japan - PUD KZN 80/120",
+   1,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Primus Japan - PUD KZN 100/200",
+   15,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Primus Japan - PUD KZN 200/300",
+   5,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Primus Japan - PUD KKD 300/500",
+   648,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Primus EU - BKN",
+   31,
+   0
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PD PVN 100/200",
+   0,
+   5770
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PUD PVN 200/300",
+   0,
+   1200
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PUD KKD 200/300",
+   0,
+   1200
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PUD PVN 300/500",
+   0,
+   660
+  ],
+  [
+   "2026-08-21 00:00:00",
+   "Blue Dolphin - PUD KKD 300/500",
+   0,
+   1170
+  ]
+ ],
+ "fx": 95,
+ "date": "2026-08-21 00:00:00",
+ "rates": {
+  "Blue Dolphin - PD PVN 100/200": 7
+ }
+}
