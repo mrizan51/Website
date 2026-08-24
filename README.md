@@ -130,6 +130,79 @@ column-level unlocking on `Daily Entry`, and the data-validation ranges when it
 recalculates. Re-saving through openpyxl to restore them would strip the cached
 values again, so `--relock` patches the XML in place instead.
 
+## Lot analysis
+
+[`lot-analysis/PEI-Lot-Analysis.xlsx`](lot-analysis/PEI-Lot-Analysis.xlsx) is the
+step after the stock register: yield and cost for each **lot of raw material**
+bought, and a one-page report for the directors. Seven sheets, 4,823 live
+formulas, room for 200 lots and 2,000 grade lines.
+
+The loop per lot is four steps, and step 4 is the directors' PDF:
+
+1. On `Lots`, add a row — lot no, statement and purchase dates, party, raw kg,
+   raw amount, peeling ₹/kg and the US$ → ₹ rate. Those eight are all you type;
+   everything from Peeling Amount rightwards is calculated.
+2. On `Lot Entry`, add one row per grade produced — slabs, net kg per slab,
+   gross weight per slab and the sale price per kg. Lot no, spec and grade come
+   from dropdowns that read the `Lots` and `Grades` sheets, so they grow by
+   themselves.
+3. Open `Lot Report` and put the lot number in the yellow cell **F5**.
+4. **File ▸ Export ▸ Create PDF/XPS**, choose *Selected sheet*, and send it.
+
+**Two weights per slab, and they are not the same.** Net kg per slab (usually 2)
+is what the buyer pays for; gross weight per slab (2.150, 2.200 …) is the final
+weight. Yield is measured on the gross — F.WT — while the sale is on the net, so
+the workbook carries both rather than deriving one from the other:
+
+```
+Packed kg = slabs × net kg per slab        Amount (US$) = packed kg × price per kg
+F.WT (kg) = slabs × gross wt per slab      Yield %      = total F.WT ÷ raw kg
+```
+
+**Cost and profit.** Peeling is charged on the raw kg bought, expenses on the
+packed kg produced, and the profit per kg is over the **raw** kg — not the
+finished kg, which would flatter a bad yield:
+
+```
+Total raw cost = raw amount + peeling ₹/kg × raw kg
+Expenses       = expense ₹/kg × packed kg
+Net profit     = sales value ₹ − total raw cost − expenses
+```
+
+**Expenses.** `Expenses` holds the standard rate per kg for each of 13 heads,
+used by every lot. A lot that differs — a different freight, say — overrides any
+single head in the grey columns at the right of `Lots`; leave an override blank
+and the standard rate applies. The report always prints the rate it actually
+used, so an override is never invisible.
+
+`Lot Report` is one A4 page: letterhead, the purchase and the day's headline
+figures, four KPI tiles, production by grade, the expense build-up and the
+result block. It prints 12 grade lines; if a lot has more, a note says how many
+are not shown rather than dropping them silently. `Summary` lists every lot with
+its yield and profit, and totals them — with the all-lots yield weighted by raw
+kg, not averaged.
+
+**Protection** works as on the stock register. Only `Lots` (the eight blue
+columns and the expense overrides), the `Lot Entry` grid, the `Grades` and
+`Expenses` master lists, and the lot number on `Lot Report` accept typing;
+everything else, including formatting and the workbook structure, is locked.
+
+**Against the printed statement.** The workbook is seeded from lot C 1374 and
+reproduces every figure on that sheet — ₹15,27,705 raw cost, 49.20% yield,
+$18,581.00 sales, ₹37,156.80 profit, ₹6.20 per raw kg — except the expense
+block. The rates printed there are rounded to two decimals and the tool that
+produced it used slightly different underlying rates, so its total is
+₹1,07,433.37 where these rates multiply out to ₹1,07,428.20. The ₹5.17
+difference carries into the profit; this workbook is arithmetically consistent.
+
+**Rebuilding is the same three steps as the register:**
+
+```
+python tools/build-lot-xlsx.py lot-analysis/PEI-Lot-Analysis.xlsx
+python <xlsx-skill>/scripts/recalc.py lot-analysis/PEI-Lot-Analysis.xlsx 240
+python tools/build-lot-xlsx.py --relock lot-analysis/PEI-Lot-Analysis.xlsx
+```
+
 ## Purchase order
 
 [`purchase-order/index.html`](purchase-order/index.html) is a self-contained,
