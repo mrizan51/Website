@@ -130,6 +130,38 @@ column-level unlocking on `Daily Entry`, and the data-validation ranges when it
 recalculates. Re-saving through openpyxl to restore them would strip the cached
 values again, so `--relock` patches the XML in place instead.
 
+## Bills on hand
+
+[`bills/index.html`](bills/index.html) is the export bills on hand at 30/09/2026,
+transcribed from the handwritten list — 23 bills, each with invoice no, item,
+buyer, amount in US$, any advance received, and the margin notes. Open it in any
+browser; it is one self-contained file.
+
+- **Totals in both currencies.** The table foot reads *Total billed*, *Less:
+  advances received* and *Balance receivable*, in US$ and in rupees. US$ is grouped
+  internationally, rupees in lakh/crore.
+- **One exchange rate drives every rupee figure** — the US$ → ₹ box beside the
+  date. It ships at ₹ 90.00, the rate on lot statement C 1374; set it to the day's
+  rate before printing. The footer states the rate it used.
+- **Advances received** have their own panel: which bills, how much, and what is
+  still to come in on those bills.
+- **Balance receivable by buyer**, largest first, with a hover breakdown of bills,
+  amount billed and advance for each buyer.
+- Every figure is editable, kept in the browser, and **Reset to sheet** restores
+  the list as written. Prints to one A4 page.
+
+As written on 30/09/26:
+
+| | US$ |
+|---|---:|
+| Total billed, 23 bills | 1,381,573.98 |
+| Less: advances received (invoices 47, 52, 53) | 11,000.00 |
+| **Balance receivable** | **1,370,573.98** |
+
+Item and buyer are kept exactly as written. Invoice 34 has no buyer, and
+invoices 34, 44 and 48 name *Koyo*, *Nippon* and *KON* in the item column; correct
+them on the page if those are buyers rather than items.
+
 ## Lot analysis
 
 [`lot-analysis/PEI-Lot-Analysis.xlsx`](lot-analysis/PEI-Lot-Analysis.xlsx) is the
