@@ -162,6 +162,17 @@ Item and buyer are kept exactly as written. Invoice 34 has no buyer, and
 invoices 34, 44 and 48 name *Koyo*, *Nippon* and *KON* in the item column; correct
 them on the page if those are buyers rather than items.
 
+[`bills/PEI-Bills-on-Hand.docx`](bills/PEI-Bills-on-Hand.docx) is the same
+statement as a Word document, on one A4 page: letterhead, tiles, the buyer chart
+(drawn as shaded table cells, so it stays native Word and prints crisp), the
+advances panel and the bills table. Word does not recalculate, so the exchange
+rate is fixed when the file is built. The builder reads the bills from the
+`DATA` list in `bills/index.html`, so the two cannot disagree:
+
+```
+node tools/build-bills-docx.js bills/PEI-Bills-on-Hand.docx --fx 90 --date 30.09.2026
+```
+
 ## Lot analysis
 
 [`lot-analysis/PEI-Lot-Analysis.xlsx`](lot-analysis/PEI-Lot-Analysis.xlsx) is the
