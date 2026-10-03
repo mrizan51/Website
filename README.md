@@ -173,6 +173,61 @@ rate is fixed when the file is built. The builder reads the bills from the
 node tools/build-bills-docx.js bills/PEI-Bills-on-Hand.docx --fx 90 --date 30.09.2026
 ```
 
+### Bills register (Excel)
+
+[`bills-register/PEI-Bills-Register.xlsx`](bills-register/PEI-Bills-Register.xlsx)
+keeps the bills day by day, for the partners: four sheets, 15,418 live formulas,
+room for 1,000 bills, loaded with the 23 bills above.
+
+| Sheet | What it is |
+|---|---|
+| `Summary` | the partners' page — opens first, prints on one A4 page |
+| `Bills` | the register: one row per bill, open or closed |
+| `Lists` | items and buyers for the dropdowns |
+| `Read me` | the daily routine |
+
+**On `Bills`** the white columns are typed — invoice no, invoice date, item,
+buyer, amount, advance received and date, realised and date, *Close as*, note.
+Everything to the right is worked out:
+
+```
+Received = Advance + Realised          Balance = Amount − Received
+Balance (₹) = Balance × the US$ → ₹ rate on Summary
+```
+
+and a **Status** in words: *On hand*, *Advance received*, *Part realised* or
+*Amount missing* (the bills on hand), *Realised* (grey) or *Cancelled* (grey,
+struck through). A bill is closed by realising it, or with *Close as: Settled*
+when the bank paid short, or *Close as: Cancelled* — never by clearing the row,
+so the register keeps its whole history. Clearing a row is only for a line typed
+in error, and the empty row is ignored.
+
+**`Summary`** shows the bills on hand, what was billed, what has come in against
+them and the balance, in US$ and ₹; the balance by buyer, largest first, with a
+share bar; ageing from the invoice date (0–30, 31–60, 61–90, over 90 days, no
+date); the advances received; and every open bill. *As at* follows today's date
+by itself; *US$ → ₹* is one cell that every rupee figure uses.
+
+**Checks flag themselves**: pink on `Bills` and a red line on `Summary` when two
+rows share an invoice no, a row has an amount but no invoice no (or the
+reverse), or more has been received than billed. A bill over 90 days shows red.
+
+**Protection** is as on the other workbooks — only the white `Bills` columns,
+the `Lists`, and the two yellow cells on `Summary` take typing; rows cannot be
+deleted; filtering still works.
+
+Verified against an independent model, then through a simulated day of edits:
+a bill realised in full, a part payment, a short payment settled, a
+cancellation, a deleted line, a new bill, a duplicate invoice no, a missing
+amount, an over-receipt and invoice dates for ageing. Then 43 open bills across
+28 buyers, to prove the totals stay whole when the lists overflow.
+
+```
+python tools/build-bills-xlsx.py out.xlsx --from <live.xlsx>   # 1. build, keeping entered bills
+python <xlsx-skill>/scripts/recalc.py out.xlsx 300             # 2. cache values
+python tools/build-bills-xlsx.py --relock out.xlsx             # 3. restore locks
+```
+
 ## Lot analysis
 
 [`lot-analysis/PEI-Lot-Analysis.xlsx`](lot-analysis/PEI-Lot-Analysis.xlsx) is the
