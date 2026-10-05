@@ -146,6 +146,7 @@ class DvBuilder {
 class Spreadsheet {
   constructor() { this.sheets = []; this.toasts = []; }
   getSheetByName(n) { return this.sheets.find((s) => s.name === n) || null; }
+  getSheets() { return this.sheets.slice(); }
   insertSheet(n) { need(!this.getSheetByName(n), `sheet ${n} exists`); const s = new Sheet(n, 1000, 26); this.sheets.push(s); return s; }
   getSpreadsheetTimeZone() { return 'Asia/Kolkata'; }
   toast(m, t, s) { this.toasts.push(m); }
@@ -156,7 +157,7 @@ const ss = new Spreadsheet();
 const ctx = vm.createContext({
   console: { warn: (m) => fail('console.warn: ' + m), log: () => {} },
   SpreadsheetApp: Object.assign({
-    getActiveSpreadsheet: () => ss,
+    getActiveSpreadsheet: () => active,
     newConditionalFormatRule: () => new CfBuilder(),
     newDataValidation: () => new DvBuilder(),
     getUi: () => { throw new Error('getUi is not available here'); },
@@ -182,7 +183,11 @@ const ctx = vm.createContext({
 });
 
 // ------------------------------------------------------------------ the original sheet
-const sh = new Sheet('Purchase', SRC.maxRows, Math.max(SRC.maxCols, 26));
+// TAB=Sheet1 plays a file whose purchase tab was never named "Purchase"
+let active = ss;
+const TAB = process.env.TAB || 'Purchase';
+ss.sheets.push(new Sheet('Notes', 100, 10));      // another tab, ahead of the purchases
+const sh = new Sheet(TAB, SRC.maxRows, Math.max(SRC.maxCols, 26));
 ss.sheets.push(sh);
 for (const [k, v] of Object.entries(SRC.cells)) {
   const [r, c] = k.split(',').map(Number);
@@ -191,6 +196,17 @@ for (const [k, v] of Object.entries(SRC.cells)) {
 
 vm.runInContext(CODE, ctx, { filename: 'Code.gs' });
 const run = (src) => vm.runInContext(src, ctx);
+
+// ------------------------------------------------------------------ 0. what Run runs, and the plain-English errors
+const firstFn = (CODE.match(/^function (\w+)/m) || [])[1];
+if (firstFn !== 'setup') fail(`first function is ${firstFn}: the editor's Run button would not run set-up`);
+const throws = (src) => { try { run(src); return ''; } catch (err) { return String(err.message || err); } };
+active = null;
+if (!/not attached to a spreadsheet/.test(throws('setup()'))) fail('unbound script: no clear error');
+active = new Spreadsheet(); active.sheets.push(new Sheet('Sheet1', 50, 10));
+const noTab = throws('setup()');
+if (!/Could not find the purchase sheet.*"Sheet1"/.test(noTab)) fail(`no purchase tab: ${noTab}`);
+active = ss;
 
 // ------------------------------------------------------------------ 1. set-up
 run('setup()');
@@ -271,10 +287,10 @@ const trig = triggers.map((t) => `${t.fn}:${t.kind}`).sort();
 if (JSON.stringify(trig) !== JSON.stringify(['nightlyRestore:daily@2', 'onChangeInstalled:change'])) fail(`triggers ${trig}`);
 
 // formatting covers the whole table in one font, and every column has its format
-const fontAll = calls.some((c) => c.sheet === 'Purchase' && c.m === 'font' && c.a === 'Arial' && c.r[0] === 1 && c.r[2] === sh.maxRows && c.r[3] === 9);
+const fontAll = calls.some((c) => c.sheet === TAB && c.m === 'font' && c.a === 'Arial' && c.r[0] === 1 && c.r[2] === sh.maxRows && c.r[3] === 9);
 if (!fontAll) fail('no single font over the whole table');
 const fmts = {};
-calls.filter((c) => c.sheet === 'Purchase' && c.m === 'numberFormat' && c.r[0] === FIRST && c.r[3] === 1).forEach((c) => { fmts[c.r[1]] = c.a; });
+calls.filter((c) => c.sheet === TAB && c.m === 'numberFormat' && c.r[0] === FIRST && c.r[3] === 1).forEach((c) => { fmts[c.r[1]] = c.a; });
 const wantF = { 2: '@', 3: 'dd/mm/yyyy', 4: '@', 5: '#,##0.00', 6: '[$₹]#,##0.00', 7: '[$₹]#,##0.00', 8: 'dd/mm/yyyy', 9: '@' };
 for (const [c, f] of Object.entries(wantF)) if (fmts[c] !== f) fail(`number format col ${c}: ${fmts[c]}`);
 if (sh.frozen !== 2) fail('frozen rows');

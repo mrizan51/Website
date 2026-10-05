@@ -1,11 +1,15 @@
 /**
  * Premier Exports International — Purchase Statement, live on Google Sheets.
  *
- * SET-UP — once, by the owner of the sheet
+ * SET-UP — once, by the owner of the sheet. Pasting the code changes nothing by
+ * itself: set-up has to be run.
  *   1. Open the purchase statement in Google Sheets.
  *   2. Extensions ▸ Apps Script. Delete what is there, paste this file, click Save.
- *   3. Reload the sheet. A "PEI Purchase" menu appears.
- *   4. PEI Purchase ▸ Set up statement… and allow access when Google asks.
+ *   3. Check the box beside Run says "setup", then click Run.
+ *   4. Google asks for permission: Review permissions ▸ your account ▸ Advanced ▸
+ *      Go to (project name) ▸ Allow. The warning is normal for your own script.
+ *   5. Wait for "Execution completed" at the foot of the editor, then look at the
+ *      sheet. Reload it once for the "PEI Purchase" menu.
  *
  * WHAT IT DOES
  *   Party names   Every known spelling becomes one name (PARTY_NAMES below), and the
@@ -119,6 +123,29 @@ const CONFIRM = ["ARF FISHERIES", "ASR FISHERIES", "CRH", "DSS", "EFADH", "KCM",
 
 const LOG_HEAD = ['When', 'Row', 'Lot No.', 'Field', 'Was', 'Now', 'Note'];
 
+// ==================================================================== set-up
+// Kept first in the file: the editor's Run button runs the first function.
+function setup() {
+  const ss = activeSpreadsheet_();
+  const sh = purchaseSheet_(ss);
+  if (!sh) {
+    throw new Error('Could not find the purchase sheet. It needs "Lot No." in cell B2 and "Party" in D2, ' +
+                    'or a tab named "' + SHEET + '". Tabs in this file: ' +
+                    ss.getSheets().map(function (s) { return '"' + s.getName() + '"'; }).join(', ') + '.');
+  }
+  ensureRows_(sh);
+  const log = cleanData_(ss, sh);
+  writeParties_(ss, sh);
+  writeLog_(ss, log);
+  restoreAll();
+  protect_(ss, sh);
+  installTriggers_(ss);
+  const done = 'Set-up finished on the "' + sh.getName() + '" tab: ' + log.length + ' lines written to "' + LOG +
+               '". Formatting, colour rules and protection are in place. Reload the sheet for the PEI Purchase menu.';
+  console.log(done);
+  ss.toast(done, 'Purchase statement set up', 15);
+}
+
 // ===================================================================== menu
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('PEI Purchase')
@@ -128,26 +155,35 @@ function onOpen() {
     .addToUi();
 }
 
-// ==================================================================== set-up
-function setup() {
+function activeSpreadsheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sh = ss.getSheetByName(SHEET);
-  if (!sh) throw new Error('No sheet named "' + SHEET + '".');
-  ensureRows_(sh);
-  const log = cleanData_(ss, sh);
-  writeParties_(ss, sh);
-  writeLog_(ss, log);
-  restoreAll();
-  protect_(ss, sh);
-  installTriggers_(ss);
-  ss.toast(log.length + ' lines written to "' + LOG + '". Formatting, rules and protection are in place.',
-           'Purchase statement set up', 10);
+  if (!ss) {
+    throw new Error('This script is not attached to a spreadsheet. Open the purchase statement in Google ' +
+                    'Sheets, choose Extensions ▸ Apps Script there, and paste the code into that project.');
+  }
+  return ss;
+}
+
+/** The purchase tab: named "Purchase", or else the one with Lot No. and Party in its headings. */
+function purchaseSheet_(ss) {
+  const named = ss.getSheetByName(SHEET);
+  if (named) return named;
+  const found = ss.getSheets().filter(isPurchaseSheet_);
+  return found.length ? found[0] : null;
+}
+
+function isPurchaseSheet_(sh) {
+  if (sh.getName() === SHEET) return true;
+  if (sh.getMaxRows() < HEAD_ROW || sh.getMaxColumns() < COL.party) return false;
+  const h = sh.getRange(HEAD_ROW, COL.lot, 1, COL.party - COL.lot + 1).getValues()[0]
+    .map(function (x) { return String(x).trim().toLowerCase(); });
+  return h[0] === 'lot no.' && h[h.length - 1] === 'party';
 }
 
 /** Puts every format, rule and check back. Runs on any formatting change, and nightly. */
 function restoreAll() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sh = ss.getSheetByName(SHEET);
+  const ss = activeSpreadsheet_();
+  const sh = purchaseSheet_(ss);
   if (!sh) return;
   withLock_(20000, function () {
     if (ensureRows_(sh)) openEntryRange_(sh);
@@ -167,7 +203,7 @@ function restoreAll() {
 function onEdit(e) {
   if (!e || !e.range) return;
   const sh = e.range.getSheet();
-  if (sh.getName() !== SHEET) return;
+  if (!isPurchaseSheet_(sh)) return;
   const top = Math.max(e.range.getRow(), FIRST);
   const bottom = e.range.getRow() + e.range.getNumRows() - 1;
   if (bottom < top) return;

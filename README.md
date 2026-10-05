@@ -237,10 +237,15 @@ The purchase statement lives on Google Drive, so it comes in two parts:
 | [`purchase-statement/Code.gs`](purchase-statement/Code.gs) | the Apps Script that makes the live Google Sheet consistent and keeps it so |
 | [`purchase-statement/PEI-Purchase-Statement.xlsx`](purchase-statement/PEI-Purchase-Statement.xlsx) | the statement as at the uploaded copy, cleaned by the same rules — to check before running the script, or to import |
 
-**Set-up, once, by the sheet's owner:** open the statement in Google Sheets ▸
-Extensions ▸ Apps Script ▸ paste `Code.gs` ▸ Save ▸ reload the sheet ▸
-**PEI Purchase ▸ Set up statement…**. It works on the live data, so purchases
-entered after the upload are cleaned too; File ▸ Version history undoes it.
+**Set-up, once, by the sheet's owner.** Pasting the code changes nothing by
+itself — set-up has to run. Open the statement in Google Sheets ▸ Extensions ▸
+Apps Script ▸ paste `Code.gs` ▸ Save ▸ with **setup** showing beside **Run**
+(it is the first function, so it is the default), click **Run** ▸ allow access
+(*Advanced ▸ Go to … ▸ Allow* — the warning is normal for your own script) ▸
+wait for *Execution completed*. It works on the live data, so purchases entered
+after the upload are cleaned too; File ▸ Version history undoes it. The tab need
+not be named *Purchase*: set-up finds the one with *Lot No.* and *Party* in its
+headings.
 
 What set-up does, and what then holds day to day:
 
