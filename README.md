@@ -228,6 +228,57 @@ python <xlsx-skill>/scripts/recalc.py out.xlsx 300             # 2. cache values
 python tools/build-bills-xlsx.py --relock out.xlsx             # 3. restore locks
 ```
 
+## Purchase statement (Google Sheets)
+
+The purchase statement lives on Google Drive, so it comes in two parts:
+
+| File | What it is |
+|---|---|
+| [`purchase-statement/Code.gs`](purchase-statement/Code.gs) | the Apps Script that makes the live Google Sheet consistent and keeps it so |
+| [`purchase-statement/PEI-Purchase-Statement.xlsx`](purchase-statement/PEI-Purchase-Statement.xlsx) | the statement as at the uploaded copy, cleaned by the same rules — to check before running the script, or to import |
+
+**Set-up, once, by the sheet's owner:** open the statement in Google Sheets ▸
+Extensions ▸ Apps Script ▸ paste `Code.gs` ▸ Save ▸ reload the sheet ▸
+**PEI Purchase ▸ Set up statement…**. It works on the live data, so purchases
+entered after the upload are cleaned too; File ▸ Version history undoes it.
+
+What set-up does, and what then holds day to day:
+
+- **One name per supplier.** 81 spellings become 49 parties (`PARTY_NAMES` in
+  `Code.gs`). Most are case and spelling; from mid-August names were typed short
+  and in capitals (*RAJENDRA PRASAD* for *Rajendra Prasad Shashthri*), and each
+  short form starts the week its long form stops, at the same price — those 14
+  are marked *please confirm* in the log. Names that might be one supplier but
+  can't be shown to be (*ANH* / *ANI Marine Foods*, *Vijeesh Chombala* /
+  *Vijeesh M*, *Hari CRH* / *SRH*, *ASR Group* / *Suresh N ASR*) are left apart.
+  Afterwards the Party column takes only names on the `Parties` sheet.
+- **Lot No. always starts with `PUR-`.** The numbers are stored as text
+  (`PUR-001`), a new row gets the next number by itself, and a typed number must
+  be `PUR-` and unused.
+- **Consistency.** One font, number format, alignment and width per column;
+  Month on every row from the Date (the typed labels stopped at August); box
+  counts typed into the kg column moved to Notes; numbers on empty rows removed.
+- **Amount vs Swipe.** Swipe fills red when Amount is greater (a Swipe not yet
+  entered counts as nothing swiped); Amount fills green when Swipe is greater.
+  The same date, party and amount twice turns the Lot No. amber.
+- **Formatting cannot be changed by employees.** Google Sheets has no "lock
+  formatting, allow typing" setting, so the sheet is protected except the entry
+  cells (B–I), and an owner-run trigger puts back any formatting change the
+  moment it is made, plus nightly.
+- **Cleanup log** — every change, and 26 rows worth a second look (payments
+  dated before the purchase, weights that don't fit the amount, Amount ≠ Swipe,
+  a probable double entry). Nothing in those rows was altered.
+
+Every date, amount, swipe and payment is unchanged; ₹32,66,82,899 billed before
+and after. `Code.gs` is tested by running it, in a strict stand-in for Google
+Sheets, against the uploaded statement: it reproduces the Excel build cell for
+cell, then numbers new rows, restores formatting and re-runs cleanly.
+
+```
+python tools/build-purchase-xlsx.py --dump /tmp/ptest    # build the .xlsx, dump test data
+node tools/test-purchase-gs.js /tmp/ptest                # run Code.gs against it
+```
+
 ## Lot analysis
 
 [`lot-analysis/PEI-Lot-Analysis.xlsx`](lot-analysis/PEI-Lot-Analysis.xlsx) is the
