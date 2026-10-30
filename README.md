@@ -130,6 +130,46 @@ column-level unlocking on `Daily Entry`, and the data-validation ranges when it
 recalculates. Re-saving through openpyxl to restore them would strip the cached
 values again, so `--relock` patches the XML in place instead.
 
+### Carton stock (in the live register)
+
+[`stock-statement/Stock_Register.xlsx`](stock-statement/Stock_Register.xlsx) is
+the live stock register as uploaded on 30/10/2026, with three carton sheets added
+after *Daily Report*. Every existing sheet is left exactly as the user keeps it —
+their own headings, the *No. of Cases* column, the edited Daily Report — so the
+sheets are added to their file rather than the register being rebuilt.
+
+| Sheet | What it is |
+|---|---|
+| `Carton Stock` | one row per carton: opening count, received, used, adjusted, closing, reorder level, status, days left — prints on one page |
+| `Carton Entry` | one row per delivery of cartons, or an adjustment (damaged, recount) |
+| `Packing` | which carton each product goes into, and how many slabs (or kilos) fill one |
+
+**Cartons are never typed as used.** Production already entered on *Daily Entry*
+takes its cartons off:
+
+```
+Cartons used = production since the Count Date ÷ packed per carton   (rounded up, per product)
+Closing      = Opening + Received − Used ± Adjusted
+```
+
+Rounding is on each product's running total, so a part-filled carton counts as
+used, and two half cartons on two days make one carton, not two. *Days Left* is
+the closing stock over the average daily use of the last 30 days.
+
+Seeded with one carton per brand; the eight shrimp brands start at 10 per carton,
+read from the register's own *No. of Cases* column (= balance ÷ 10). Tuna,
+mackerel, cuttlefish and squid are left for the user to fill. Red lines flag a
+product packed with no carton set, a carton name not on the list, and two
+cartons sharing a name.
+
+The live file is changed through openpyxl alone, with `fullCalcOnLoad`, so Excel
+works the new formulas out on opening and nothing else in the file moves.
+
+```
+python tools/add-carton-register.py <live.xlsx> out.xlsx [--count-date YYYY-MM-DD]
+python tools/test-carton-register.py <live.xlsx> /tmp/ctest   # scenario vs an independent calculation
+```
+
 ## Bills on hand
 
 [`bills/index.html`](bills/index.html) is the export bills on hand at 30/09/2026,
