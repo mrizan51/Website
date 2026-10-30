@@ -156,17 +156,24 @@ Rounding is on each product's running total, so a part-filled carton counts as
 used, and two half cartons on two days make one carton, not two. *Days Left* is
 the closing stock over the average daily use of the last 30 days.
 
-Seeded with one carton per brand; the eight shrimp brands start at 10 per carton,
-read from the register's own *No. of Cases* column (= balance ÷ 10). Tuna,
-mackerel, cuttlefish and squid are left for the user to fill. Red lines flag a
-product packed with no carton set, a carton name not on the list, and two
-cartons sharing a name.
+The carton list is the company's own (30/10/2026): Blue Dolphin and AMF have a
+carton for each of PD 100/200, PD 200/300, PUD 200/300 and PUD 300/500; Primus
+Japan one for PD and one for PUD; Primus EU, Mackerel (10 kg), two squid cartons
+(6 × 2 kg) and a Plain Carton; every other brand one design for all its products,
+not in stock. 12,975 cartons were counted in. `tools/fill-carton-list.py` puts
+the list in and points every product on *Packing* at its carton, on the user's
+own copy so their row heights and column widths stay. Shrimp brands pack 10 slabs
+a carton, from the register's *No. of Cases* column; tuna, cuttlefish and semi
+needle squid are left for the user to fill. Red lines flag a product packed with
+no carton set, a carton name not on the list, and two cartons sharing a name; a
+carton at nil reads *Out of stock*.
 
 The live file is changed through openpyxl alone, with `fullCalcOnLoad`, so Excel
 works the new formulas out on opening and nothing else in the file moves.
 
 ```
 python tools/add-carton-register.py <live.xlsx> out.xlsx [--count-date YYYY-MM-DD]
+python tools/fill-carton-list.py <register with cartons.xlsx> out.xlsx
 python tools/test-carton-register.py <live.xlsx> /tmp/ctest   # scenario vs an independent calculation
 ```
 
